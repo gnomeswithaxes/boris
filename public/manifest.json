@@ -1,13 +1,11 @@
 {
   "manifest_version": 3,
 
-  "name": "Chrome Extension TypeScript Starter",
-  "description": "Chrome Extension, TypeScript, Visual Studio Code",
-  "version": "1.0",
+  "name": "Boris: the Italian Goldfish (TS)",
+  "description": "Conversione prezzi da usd a eur su mtggoldfish.com",
+  "version": "1.5",
 
-  "options_ui": {
-    "page": "options.html"
-  },
+  "options_page": "options.html",
 
   "action": {
     "default_title": "Boris: usd -> eur",
@@ -22,7 +20,7 @@
 
   "content_scripts": [
       {
-          "matches": ["<all_urls>"],
+          "matches": ["https://www.mtggoldfish.com/*"],
           "js": ["js/vendor.js", "js/content_script.js"]
       }
   ],
@@ -32,10 +30,20 @@
   },
 
   "permissions": [
-    "storage"
+    "storage",
+    "tabs",
+    "activeTab",
+    "scripting"
   ],
 
   "host_permissions": [
     "<all_urls>"
-  ]
+  ],
+
+  "icons": {
+    "16": "/images/boris16.png",
+    "32": "/images/boris32.png",
+    "48": "/images/boris48.png",
+    "128": "/images/boris128.png"
+  }
 }

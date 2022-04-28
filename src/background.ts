@@ -1,6 +1,3 @@
-function polling() {
-  // console.log("polling");
-  setTimeout(polling, 1000 * 30);
-}
-
-polling();
+chrome.action.onClicked.addListener((tab) => {
+	console.log("Ciao!");
+});
