@@ -94,24 +94,35 @@ updateSavedListsDropdown();
 
 document.querySelector("ul.deck-type-menu")?.after(borisNav);
 
+function parse_row(row_parts: NodeListOf<HTMLTableCellElement>) {
+  const card = row_parts[1].querySelector("a");
+  const set = card?.getAttribute("data-card-id");
+  let first_bracket = set!.search("\\[");
+  let second_bracket = set!.search("\\]");
+  let set_name = set!.slice(first_bracket + 1, second_bracket);
+
+  const row = {
+    amount: parseInt(row_parts[0].innerHTML),
+    card_line: card,
+    name: card?.innerHTML!,
+    set: set_name,
+    mana_cost: row_parts[2].querySelector("span.manacost"),
+    price: row_parts[3]
+  }
+
+  return row
+}
+
+
 function load_cards(): (IInternalCardModel)[] {
   let text_list: (IInternalCardModel)[] = [];
 
   document.querySelector("table.deck-view-deck-table")?.querySelectorAll("tr:not(.deck-category-header)").forEach((e, i) => {
-    const row_parts = e.querySelectorAll("td");
-    const card_amount = parseInt(row_parts[0].innerHTML);
-    const card = row_parts[1].querySelector("a");
-    const card_price = row_parts[3];
+    const row = parse_row(e.querySelectorAll("td"));
 
-    const name = card?.innerHTML!;
-    const set = card?.getAttribute("data-card-id");
-    let first_bracket = set!.search("\\[");
-    let second_bracket = set!.search("\\]");
-    let set_name = set!.slice(first_bracket + 1, second_bracket);
+    text_list.push({ name: row.name, set: row.set, amount: row.amount });
 
-    text_list.push({ name: name, set: set_name, amount: card_amount });
-
-    card_price.classList.add("boris");
+    row.price.classList.add("boris");
   });
 
   return text_list;
@@ -136,40 +147,48 @@ async function fetch_cards() {
   return await Promise.all(requests).then((responses) => {
     responses.forEach(async (response: any) => {
       card_list = [...card_list, ...response.data];
-      if (response.not_found.length)
-        await fetch_collection(response.not_found.map((c: IScryfallCard) => ({ name: c.name })))
+      if (response.not_found.length) {
+        
+        const format = (name: string) => name.slice(0, name.search("//") - 1) + "//" + name.slice(name.search("//") + 3)
+
+        await fetch_collection(response.not_found.map((c: IScryfallCard) => ({ name: format(c.name) })))
           .then((response) => card_list = [...card_list, ...response.data]);
+      }
     });
     return card_list;
   })
 }
 
-function add_eur_prices(card_list: IScryfallCard[]) {
+function convert_prices(card_list: IScryfallCard[]) {
+  let total = 0;
+
   document.querySelector("table.deck-view-deck-table")?.querySelectorAll("tr:not(.deck-category-header)").forEach((e, i) => {
-    const name = e.querySelectorAll("td")[1].querySelector("a")?.innerHTML!;
-    const price_elem = e.querySelector(".boris")!;
-    let card: IScryfallCard | undefined = card_list.find(c => c.name === name);
-    const usd_price = price_elem.innerHTML
+    const row = parse_row(e.querySelectorAll("td"));
+    // const price_elem = e.querySelector(".boris")!;
+    let card: IScryfallCard | undefined = card_list.find(c => c.name.toLowerCase().includes(row.name.toLowerCase()));
+    const usd_price = row.price.innerHTML
     if (card) {
-      const eur_price = card.prices?.eur;
+      const eur_price = parseFloat(card.prices?.eur ?? 0) * row.amount;
+
+      total += eur_price;
+
       const card_uri: string = card.purchase_uris.cardmarket ?? card.scryfall_uri
 
-      price_elem.innerHTML = "<a style='color: black;' href=\"" + card_uri + "\"><span class='boris-usd-price'>" + usd_price + "</span><span class='boris-eur-price' style='font-size: 0'> €&nbsp;" + eur_price + "</span></a>";
+      row.price.innerHTML = "<a style='color: black;' href=\"" + card_uri + "\"><span class='boris-usd-price'>" + usd_price + "</span><span class='boris-eur-price' style='font-size: 0'> €&nbsp;" + eur_price.toFixed(2) + "</span></a>";
     } else {
-      price_elem.innerHTML = "<span style='color: orange''>" + usd_price + "</span>"
+      row.price.innerHTML = "<span style='color: orange''>" + usd_price + "</span>"
     }
   })
+  set_total(total);
   togglePrices();
+  console.log(getSourceAsDOM("https://www.mtggoldfish.com/deck/4778591#paper"))
 }
 
-function calculate_total(list: IScryfallCard[]) {
-  let total = 0;
-  list.forEach((c) => {
-    total += parseFloat(c.prices?.eur ?? 0)
-  })
+function set_total(total: number) {
   const price_div = document.createElement("div");
   price_div.classList.add("deck-price-v2", "boris-price");
-  price_div.innerHTML = " €&nbsp;" + total.toFixed(0) + "<span class='cents'>." + total.toFixed(2).split(".")[1] + "</span>";
+  const locale_total = total.toLocaleString("en-us", { minimumFractionDigits: 2 }).split(".")
+  price_div.innerHTML = " €&nbsp;" + locale_total[0] + "<span class='cents'>." + locale_total[1] + "</span>";
 
   document.head.insertAdjacentHTML("beforeend", `<style>.boris-price:before {content: "Boris";}</style>`);
 
@@ -177,8 +196,7 @@ function calculate_total(list: IScryfallCard[]) {
 }
 
 fetch_cards().then((list) => {
-  add_eur_prices(list);
-  calculate_total(list)
+  convert_prices(list);
 })
 
 let sizeToggle: boolean = true;
