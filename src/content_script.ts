@@ -181,7 +181,6 @@ function convert_prices(card_list: IScryfallCard[]) {
   })
   set_total(total);
   togglePrices();
-  console.log(getSourceAsDOM("https://www.mtggoldfish.com/deck/4778591#paper"))
 }
 
 function set_total(total: number) {
