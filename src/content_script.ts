@@ -83,12 +83,14 @@ const borisToggleOuterButton = navButtonFactory("Boris");
 const borisToggleButton = borisToggleOuterButton.children[0];
 borisToggleButton.classList.add("btn-online-muted");
 const borisToClipboardButton = navButtonFactory("Copy");
+const borisCockatriceButton = navButtonFactory("Cockatrice");
 const borisSaveDeckButton = navButtonFactory("Save");
 const borisRemoveDeckButton = navButtonFactory("Saved");
 borisRemoveDeckButton.classList.add("show");
 
 borisNav.appendChild(borisToggleOuterButton);
 borisNav.appendChild(borisToClipboardButton);
+borisNav.appendChild(borisCockatriceButton);
 borisNav.appendChild(borisSaveDeckButton);
 updateSavedListsDropdown();
 
@@ -112,7 +114,6 @@ function parse_row(row_parts: NodeListOf<HTMLTableCellElement>) {
 
   return row
 }
-
 
 function load_cards(): (IInternalCardModel)[] {
   let text_list: (IInternalCardModel)[] = [];
@@ -148,7 +149,7 @@ async function fetch_cards() {
     responses.forEach(async (response: any) => {
       card_list = [...card_list, ...response.data];
       if (response.not_found.length) {
-        
+
         const format = (name: string) => name.slice(0, name.search("//") - 1) + "//" + name.slice(name.search("//") + 3)
 
         await fetch_collection(response.not_found.map((c: IScryfallCard) => ({ name: format(c.name) })))
@@ -164,7 +165,6 @@ function convert_prices(card_list: IScryfallCard[]) {
 
   document.querySelector("table.deck-view-deck-table")?.querySelectorAll("tr:not(.deck-category-header)").forEach((e, i) => {
     const row = parse_row(e.querySelectorAll("td"));
-    // const price_elem = e.querySelector(".boris")!;
     let card: IScryfallCard | undefined = card_list.find(c => c.name.toLowerCase().includes(row.name.toLowerCase()));
     const usd_price = row.price.innerHTML
     if (card) {
@@ -179,6 +179,7 @@ function convert_prices(card_list: IScryfallCard[]) {
       row.price.innerHTML = "<span style='color: orange''>" + usd_price + "</span>"
     }
   })
+
   set_total(total);
   togglePrices();
 }
@@ -219,26 +220,49 @@ const togglePrices = () => {
   sizeToggle = !sizeToggle;
 };
 
-function download(filename: string, text: string) {
-  var element = document.createElement('a');
-  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-  element.setAttribute('download', filename);
 
-  element.style.display = 'none';
-  document.body.appendChild(element);
-
-  element.click();
-
-  document.body.removeChild(element);
+function printableList(): string {
+  let printable_list = "";
+  load_cards().forEach(c => printable_list += c.amount + " " + c.name + "\n")
+  return printable_list;
 }
 
 const copyToClipboard = () => {
-  let printable_list = "";
-  load_cards().forEach(c => printable_list += c.amount + " " + c.name + "\n")
-  navigator.clipboard.writeText(printable_list).then(() => {
+
+  navigator.clipboard.writeText(printableList()).then(() => {
     borisToClipboardButton.children[0].classList.add("btn-paper");
     setTimeout(() => borisToClipboardButton.children[0].classList.remove("btn-paper"), 500)
   })
+}
+
+declare global { interface Window { showSaveFilePicker?: any; } }
+
+const saveToCockatrice = async () => {
+  let title = getTitle()?.split("<")[0].trim().replace(/[^a-z A-Z]+/, '') + ".txt";
+
+  for (const a of document.querySelectorAll("a")) {
+    if (a.innerText?.includes("Text File")) {
+      fetch(a.href)
+        .then(res => res.blob())
+        .then(async blob => {
+          let handler: any = await window.showSaveFilePicker({
+            suggestedName: title ?? "", 
+            types: [{
+              description: 'Text file',
+              accept: { 'text/plain': ['.txt'] },
+            }],
+          });
+          const writable = await handler.createWritable();
+          await writable.write(blob);
+          writable.close();
+        })
+      break;
+    }
+  }
+}
+
+const getTitle = () => {
+  return document.querySelector("h1.title")?.innerHTML;
 }
 
 const addToSavedDecksList = () => {
@@ -252,7 +276,7 @@ const addToSavedDecksList = () => {
     if (!savedLists.filter(u => u.url === url).length) {
       const format_text = document.querySelector("p.deck-container-information")?.innerHTML!;
       const format = format_text.slice(format_text.search("Format: ") + 8, format_text.search("<br>"))
-      savedLists.push({ url: url, title: ("<strong>" + format + "</strong> | " ?? "") + document.querySelector("h1.title")?.innerHTML ?? url })
+      savedLists.push({ url: url, title: ("<strong>" + format + "</strong> | " ?? "") + getTitle() ?? url })
     }
 
     chrome.storage.sync.set({ saved_lists: savedLists.sort((a, b) => a.title.localeCompare(b.title)) }, () => updateSavedListsDropdown());
@@ -261,4 +285,5 @@ const addToSavedDecksList = () => {
 
 borisToggleButton.addEventListener("click", togglePrices);
 borisToClipboardButton.addEventListener("click", copyToClipboard);
+borisCockatriceButton.addEventListener("click", saveToCockatrice)
 borisSaveDeckButton.addEventListener("click", addToSavedDecksList);
