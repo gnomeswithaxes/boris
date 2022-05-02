@@ -1,5 +1,11 @@
 import { ISavedList, IInternalCardModel, IScryfallCard } from "./interfaces";
 
+let page_values = {
+  total: 0,
+  sizeToggle: true
+}
+
+
 function navButtonFactory(text: string): Element {
   const li = document.createElement("li");
   li.classList.add("nav-item");
@@ -153,46 +159,51 @@ async function fetch_cards() {
   while (text_list.length) {
     requests.push(fetch_collection(text_list.splice(0, 75).map(c => c.set.length < 3 || c.set.length > 5 ? { name: c.name } : { name: c.name, set: c.set })))
   }
+
   return await Promise.all(requests).then((responses) => {
     responses.forEach(async (response: any) => {
       card_list = [...card_list, ...response.data];
 
-      let not_found_requests: Promise<Response>[] = [];
-      response.not_found.forEach((card: IScryfallCard) => not_found_requests.push(fetch_single(card.name)))
-      await Promise.all(not_found_requests).then((responses: any[]) => {
-        card_list = [...card_list, ...responses]
-      })
     });
     return card_list;
   })
 }
 
-function convert_prices(card_list: IScryfallCard[]) {
-  let total = 0;
+function convert_price(row: any, card: IScryfallCard) {
+  const eur_price = parseFloat(card.prices?.eur ?? 0) * row.amount;
+  const card_uri = card.purchase_uris.cardmarket ?? card.scryfall_uri
 
+  row.price.innerHTML =
+    "<a style='color: black;' href=\"" + card_uri + "\">" +
+      "<span class='boris-usd-price'" + (!page_values.sizeToggle ? " style='font-size: 0'" : "") + ">" + row.price.innerHTML + "</span>" +
+      "<span class='boris-eur-price'" +  (page_values.sizeToggle ? " style='font-size: 0'" : "") + "> €&nbsp;" + eur_price.toFixed(2) + "</span>"+
+    "</a>";
+
+  page_values.total += eur_price;
+}
+
+function convert_prices(card_list: IScryfallCard[]) {
   document.querySelector("table.deck-view-deck-table")?.querySelectorAll("tr:not(.deck-category-header)").forEach((e, i) => {
     const row = parse_row(e.querySelectorAll("td"));
     let card: IScryfallCard | undefined = card_list.find(c => c.name.toLowerCase().includes(row.name.toLowerCase()));
-    const usd_price = row.price.innerHTML
+
     if (card) {
-      const eur_price = parseFloat(card.prices?.eur ?? 0) * row.amount;
-
-      total += eur_price;
-
-      const card_uri: string = card.purchase_uris.cardmarket ?? card.scryfall_uri
-
-      row.price.innerHTML = "<a style='color: black;' href=\"" + card_uri + "\"><span class='boris-usd-price'>" + usd_price + "</span><span class='boris-eur-price' style='font-size: 0'> €&nbsp;" + eur_price.toFixed(2) + "</span></a>";
+      convert_price(row, card)
     } else {
-      row.price.innerHTML = "<span style='color: orange''>" + usd_price + "</span>"
-
+      fetch_single(row.name).then((card: IScryfallCard) => {
+        if (card.purchase_uris.cardmarket) {
+          convert_price(row, card)
+        } else {
+          row.price.innerHTML = "<span style='color: orange''>" + row.price.innerHTML + "</span>"
+        }
+      })
     }
   })
-
-  set_total(total);
-  togglePrices();
 }
 
 function set_total(total: number) {
+  document.querySelector(".boris-price")?.remove()
+
   const price_div = document.createElement("div");
   price_div.classList.add("deck-price-v2", "boris-price");
   const locale_total = total.toLocaleString("en-us", { minimumFractionDigits: 2 }).split(".")
@@ -205,11 +216,12 @@ function set_total(total: number) {
 
 fetch_cards().then((list) => {
   convert_prices(list);
+  set_total(page_values.total);
+  togglePrices();
 })
 
-let sizeToggle: boolean = true;
 const togglePrices = () => {
-  if (sizeToggle)
+  if (page_values.sizeToggle)
     document.querySelectorAll(".boris").forEach(e => {
       e.querySelector("span.boris-usd-price")?.setAttribute("style", "font-size: 0");
       e.querySelector("span.boris-eur-price")?.setAttribute("style", "font-size: ");
@@ -225,7 +237,7 @@ const togglePrices = () => {
       borisToggleButton.classList.add("btn-online-muted");
     });
   }
-  sizeToggle = !sizeToggle;
+  page_values.sizeToggle = !page_values.sizeToggle;
 };
 
 function getPrintableListBlob(): Promise<Blob> | undefined {
