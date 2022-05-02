@@ -138,6 +138,14 @@ async function fetch_collection(ids: any[]): Promise<any> {
   })
 }
 
+async function fetch_single(name: string): Promise<any> {
+  return fetch(
+    "https://api.scryfall.com/cards/named?fuzzy=" + name
+  ).then(async r => {
+    return await r.json();
+  });
+}
+
 async function fetch_cards() {
   let text_list = load_cards();
   let card_list: IScryfallCard[] = [];
@@ -148,13 +156,12 @@ async function fetch_cards() {
   return await Promise.all(requests).then((responses) => {
     responses.forEach(async (response: any) => {
       card_list = [...card_list, ...response.data];
-      if (response.not_found.length) {
 
-        const format = (name: string) => name.slice(0, name.search("//") - 1) + "//" + name.slice(name.search("//") + 3)
-
-        await fetch_collection(response.not_found.map((c: IScryfallCard) => ({ name: format(c.name) })))
-          .then((response) => card_list = [...card_list, ...response.data]);
-      }
+      let not_found_requests: Promise<Response>[] = [];
+      response.not_found.forEach((card: IScryfallCard) => not_found_requests.push(fetch_single(card.name)))
+      await Promise.all(not_found_requests).then((responses: any[]) => {
+        card_list = [...card_list, ...responses]
+      })
     });
     return card_list;
   })
@@ -177,6 +184,7 @@ function convert_prices(card_list: IScryfallCard[]) {
       row.price.innerHTML = "<a style='color: black;' href=\"" + card_uri + "\"><span class='boris-usd-price'>" + usd_price + "</span><span class='boris-eur-price' style='font-size: 0'> €&nbsp;" + eur_price.toFixed(2) + "</span></a>";
     } else {
       row.price.innerHTML = "<span style='color: orange''>" + usd_price + "</span>"
+
     }
   })
 
@@ -220,44 +228,39 @@ const togglePrices = () => {
   sizeToggle = !sizeToggle;
 };
 
-
-function printableList(): string {
-  let printable_list = "";
-  load_cards().forEach(c => printable_list += c.amount + " " + c.name + "\n")
-  return printable_list;
+function getPrintableListBlob(): Promise<Blob> | undefined {
+  for (const a of document.querySelectorAll("a")) {
+    if (a.innerText?.includes("Text File")) {
+      return fetch(a.href)
+        .then(res => { return res.blob() })
+    }
+  }
 }
 
-const copyToClipboard = () => {
-
-  navigator.clipboard.writeText(printableList()).then(() => {
-    borisToClipboardButton.children[0].classList.add("btn-paper");
-    setTimeout(() => borisToClipboardButton.children[0].classList.remove("btn-paper"), 500)
+const copyToClipboard = async () => {
+  borisToClipboardButton.children[0].classList.add("btn-paper");
+  navigator.clipboard.writeText(await (await getPrintableListBlob())?.text() ?? "").then(() => {
+    borisToClipboardButton.children[0].classList.remove("btn-paper")
   })
 }
 
 declare global { interface Window { showSaveFilePicker?: any; } }
-
 const saveToCockatrice = async () => {
   let title = getTitle()?.split("<")[0].trim().replace(/[^a-z A-Z]+/, '') + ".txt";
-
-  for (const a of document.querySelectorAll("a")) {
-    if (a.innerText?.includes("Text File")) {
-      fetch(a.href)
-        .then(res => res.blob())
-        .then(async blob => {
-          let handler: any = await window.showSaveFilePicker({
-            suggestedName: title ?? "", 
-            types: [{
-              description: 'Text file',
-              accept: { 'text/plain': ['.txt'] },
-            }],
-          });
-          const writable = await handler.createWritable();
-          await writable.write(blob);
-          writable.close();
-        })
-      break;
-    }
+  const blob = getPrintableListBlob();
+  if (blob) {
+    blob.then(async blob => {
+      let handler: any = await window.showSaveFilePicker({
+        suggestedName: title ?? "",
+        types: [{
+          description: 'Text file',
+          accept: { 'text/plain': ['.txt'] },
+        }],
+      });
+      const writable = await handler.createWritable();
+      await writable.write(blob);
+      writable.close();
+    })
   }
 }
 
