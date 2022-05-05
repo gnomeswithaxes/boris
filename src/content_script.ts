@@ -1,6 +1,6 @@
-import { navButtonFactory, totalFactory } from "./components";
+import { navButtonFactory, newDropdownItem, setCheapestTotal, setTotal } from "./components";
 import { ISavedList, IScryfallCard } from "./interfaces";
-import { fetch_cards, fetch_cheapest, fetch_single, get_title, get_printable_list_blob, parse_row } from "./utilities";
+import { fetch_cards, fetch_cheapest, fetch_single, get_printable_list_blob, get_title, parse_row } from "./utilities";
 
 let page_values = {
   total: 0,
@@ -8,24 +8,27 @@ let page_values = {
   card_list: [] as IScryfallCard[],
 }
 
-function toggleSaveDeck() {
-  borisSaveDeckButton.remove();
-  borisNav.appendChild(borisRemoveDeckButton);
-  borisRemoveDeckButton.addEventListener("click", () => {
-    chrome.storage.sync.get('saved_lists', (result) => {
-      const url = window.location.href
-
-      const list = result.saved_lists.filter((l: ISavedList) => l.url !== url);
-      if (!list.length)
-        document.getElementById("saved-lists-dropdown")?.remove();
-
-      chrome.storage.sync.set({ saved_lists: list });
+function removeSavedList(to_delete: string) {
+  chrome.storage.sync.get('saved_lists', (result) => {
+    if (to_delete === window.location.href) {
       borisNav.appendChild(borisSaveDeckButton);
       borisSaveDeckButton.addEventListener("click", addToSavedDecksList);
       borisRemoveDeckButton.remove();
-      updateSavedListsDropdown();
-    })
+    }
+
+    const list = result.saved_lists.filter((l: ISavedList) => l.url !== to_delete);
+
+    if (!list.length)
+      document.getElementById("saved-lists-dropdown")?.remove();
+
+    chrome.storage.sync.set({ saved_lists: list }, () => updateSavedListsDropdown());
   })
+}
+
+function toggleSaveDeck() {
+  borisSaveDeckButton.remove();
+  borisNav.appendChild(borisRemoveDeckButton);
+  borisRemoveDeckButton.addEventListener("click", () => removeSavedList(window.location.href))
 }
 
 function updateSavedListsDropdown() {
@@ -39,11 +42,11 @@ function updateSavedListsDropdown() {
       document.getElementById("saved-lists-dropdown")?.remove();
 
       const li = document.createElement("li");
-      li.style.padding = "0.5em"
+      li.style.padding = "0.5em";
       li.id = "saved-lists-dropdown";
       li.classList.add("dropdown", "nav-item");
 
-      const a = document.createElement("a")
+      const a = document.createElement("a");
       a.classList.add("nav-link", "dropdown-toggle");
       a.innerHTML = "Saved Lists";
       a.href = "#";
@@ -52,12 +55,10 @@ function updateSavedListsDropdown() {
       const div = document.createElement("div");
       div.classList.add("dropdown-menu");
 
-      result.saved_lists.forEach((l: ISavedList) => {
-        const e = document.createElement("a");
-        e.classList.add("dropdown-item");
-        e.innerHTML = l.title;
-        e.href = l.url;
-        div.appendChild(e);
+      document.head.insertAdjacentHTML("beforeend", `<style>.dropdown-item:hover, .dropdown-item:focus { background-color: #d6d6d6; }</style>`);
+
+      result.saved_lists.forEach((list: ISavedList) => {
+        div.appendChild(newDropdownItem(list, removeSavedList));
       });
 
       li.appendChild(a);
@@ -136,26 +137,6 @@ async function addCheapestPrices() {
       setCheapestTotal(total);
     })
   }
-}
-
-function setTotal(total: number) {
-  document.querySelector(".boris-price")?.remove()
-
-  const price_div = totalFactory(total, "boris-price");
-  document.head.insertAdjacentHTML("beforeend", `<style>.boris-price:before {content: "Boris";}</style>`);
-  price_div.style.color = "#f0ad4e";
-
-  document.querySelector(".header-prices-currency")?.prepend(price_div);
-}
-
-function setCheapestTotal(total: number) {
-  document.querySelector(".boris-cheapest")?.remove()
-
-  const price_div = totalFactory(total, "boris-cheapest");
-  document.head.insertAdjacentHTML("beforeend", `<style>.boris-cheapest:before {content: "Cheapest";}</style>`);
-  price_div.style.color = "darkviolet";
-
-  document.querySelector(".header-prices-currency")?.prepend(price_div);
 }
 
 const togglePrices = () => {
@@ -237,12 +218,6 @@ const borisSaveDeckButton = navButtonFactory("Save");
 const borisRemoveDeckButton = navButtonFactory("Saved");
 borisRemoveDeckButton.classList.add("show");
 
-borisNav.appendChild(borisToggleOuterButton);
-borisNav.appendChild(borisToClipboardButton);
-borisNav.appendChild(borisCockatriceButton);
-borisNav.appendChild(borisCheapestButton);
-borisNav.appendChild(borisSaveDeckButton);
-
 document.querySelector("ul.deck-type-menu")?.after(borisNav);
 
 fetch_cards().then((list) => {
@@ -258,9 +233,14 @@ fetch_cards().then((list) => {
   }
 
   updateSavedListsDropdown();
+  borisNav.appendChild(borisToggleOuterButton);
   borisToggleButton.addEventListener("click", togglePrices);
+  borisNav.appendChild(borisToClipboardButton);
   borisToClipboardButton.addEventListener("click", copyToClipboard);
+  borisNav.appendChild(borisCockatriceButton);
   borisCockatriceButton.addEventListener("click", saveToCockatrice)
+  borisNav.appendChild(borisCheapestButton);
   borisCheapestButton.addEventListener("click", addCheapestPrices)
+  borisNav.appendChild(borisSaveDeckButton);
   borisSaveDeckButton.addEventListener("click", addToSavedDecksList);
 });

@@ -10,19 +10,23 @@ export const Options = () => {
   };
 
   useEffect(() => {
+    let isMounted = true;
     chrome.storage.sync.get('auto', (data) => {
-      if (data.auto as boolean | undefined)
-        setChecked(data.auto)
-      else {
-        setChecked(false);
-        chrome.storage.sync.set({ auto: false });
-      };
+      if (isMounted) {
+        if (data.auto as boolean | undefined)
+          setChecked(data.auto)
+        else {
+          setChecked(false);
+          chrome.storage.sync.set({ auto: false });
+        };
+      }
     });
+    return () => { isMounted = false };
   });
 
   return (
     <div>
-      <h2>Conversione automatica prezzi</h2>
+      <h2>Automatic Cheapest Prices Conversion</h2>
       <label className="switch">
         <input id="auto" type="checkbox"
           checked={checked}
