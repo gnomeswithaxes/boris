@@ -1,10 +1,11 @@
-import { navButtonFactory } from "./components";
+import { navButtonFactory, totalFactory } from "./components";
 import { ISavedList, IScryfallCard } from "./interfaces";
-import { fetch_cards, fetch_single, getPrintableListBlob, getTitle, parse_row } from "./utilities";
+import { fetch_cards, fetch_cheapest, fetch_single, get_title, get_printable_list_blob, parse_row } from "./utilities";
 
 let page_values = {
   total: 0,
-  sizeToggle: true
+  sizeToggle: true,
+  card_list: [] as IScryfallCard[],
 }
 
 function toggleSaveDeck() {
@@ -67,45 +68,92 @@ function updateSavedListsDropdown() {
   })
 }
 
-function convert_price(row: any, card: IScryfallCard) {
+function convertPrice(row: any, card: IScryfallCard) {
   const eur_price = parseFloat(card.prices?.eur ?? 0) * row.amount;
   const card_uri = card.purchase_uris.cardmarket ?? card.scryfall_uri
 
   row.price.innerHTML =
     "<a style='color: inherit;' href=\"" + card_uri + "\">" +
     "<span class='boris-usd-price'" + (!page_values.sizeToggle ? " style='font-size: 0'" : "") + ">" + row.price.innerHTML + "</span>" +
-    "<span class='boris-eur-price'" + (page_values.sizeToggle ? " style='font-size: 0'" : "") + "> €&nbsp;" + eur_price.toLocaleString("en-us", { minimumFractionDigits: 2 }) + "</span>" +
+    "<span class='boris-eur-price' " + (page_values.sizeToggle ? " style='font-size: 0'" : "") + "> €&nbsp;" + eur_price.toLocaleString("en-us", { minimumFractionDigits: 2 }) + "</span>" +
     "</a>";
 
   page_values.total += eur_price;
 }
 
-function convert_prices(card_list: IScryfallCard[]) {
+function convertAllPrices(card_list: IScryfallCard[]) {
   document.querySelector("table.deck-view-deck-table")?.querySelectorAll("tr:not(.deck-category-header)").forEach((e, i) => {
     const row = parse_row(e.querySelectorAll("td"));
     let card: IScryfallCard | undefined = card_list.find(c => c.name.toLowerCase().includes(row.name.toLowerCase()));
 
     if (card)
-      convert_price(row, card)
+      convertPrice(row, card)
     else
       fetch_single(row.name).then((card: IScryfallCard) => {
         if (card.purchase_uris.cardmarket)
-          convert_price(row, card)
+          convertPrice(row, card)
         else
           row.price.innerHTML = "<span style='color: orange''>" + row.price.innerHTML + "</span>"
       })
   })
 }
 
-function set_total(total: number) {
+async function addCheapestPrices() {
+  borisCheapestButton.remove();
+
+  if (page_values.card_list.length) {
+    let requests: Promise<any>[] = []
+
+    for (const card of page_values.card_list) { requests.push(fetch_cheapest(card.name)) };
+
+    await Promise.all(requests).then((responses) => {
+      let card_list: IScryfallCard[] = [];
+      responses.forEach((r) => {
+        card_list.push(r.data?.filter((r: IScryfallCard) => r.prices?.eur !== null)[0])
+      })
+
+      document.querySelectorAll("tr.deck-category-header>th").forEach((th) => (th as HTMLTableCellElement).colSpan = 5);
+      let total = 0;
+      document.querySelectorAll(".boris").forEach((e) => {
+        const row_element = e.parentElement!
+        const row = parse_row(row_element.querySelectorAll("td"));
+        let card: IScryfallCard | undefined = card_list.find(c => c.name?.toLowerCase().includes(row.name.toLowerCase()));
+        const td = document.createElement("td");
+        td.classList.add("text-right");
+        if (card) {
+          const eur_price = parseFloat(card.prices?.eur) * row.amount;
+          const card_uri = card.scryfall_uri ?? "javascript:void(0)";
+          total += eur_price;
+
+          td.innerHTML =
+            "<a style='color: darkviolet;' href=\"" + card_uri + "\">" +
+            "<span> €&nbsp;" + eur_price.toLocaleString("en-us", { minimumFractionDigits: 2 }) + "</span></a>"
+        } else {
+          td.innerHTML = "<span style='color: orange;'>--------</span>"
+        }
+        row_element.appendChild(td)
+      })
+      setCheapestTotal(total);
+    })
+  }
+}
+
+function setTotal(total: number) {
   document.querySelector(".boris-price")?.remove()
 
-  const price_div = document.createElement("div");
-  price_div.classList.add("deck-price-v2", "boris-price");
-  const locale_total = total.toLocaleString("en-us", { minimumFractionDigits: 2 }).split(".")
-  price_div.innerHTML = " €&nbsp;" + locale_total[0] + "<span class='cents'>." + locale_total[1] + "</span>";
-
+  const price_div = totalFactory(total, "boris-price");
   document.head.insertAdjacentHTML("beforeend", `<style>.boris-price:before {content: "Boris";}</style>`);
+  price_div.style.color = "#f0ad4e";
+
+  document.querySelector(".header-prices-currency")?.prepend(price_div);
+}
+
+function setCheapestTotal(total: number) {
+  document.querySelector(".boris-cheapest")?.remove()
+
+  const price_div = totalFactory(total, "boris-cheapest");
+  document.head.insertAdjacentHTML("beforeend", `<style>.boris-cheapest:before {content: "Cheapest";}</style>`);
+  price_div.style.color = "darkviolet";
 
   document.querySelector(".header-prices-currency")?.prepend(price_div);
 }
@@ -132,15 +180,15 @@ const togglePrices = () => {
 
 const copyToClipboard = async () => {
   borisToClipboardButton.children[0].classList.add("btn-paper");
-  navigator.clipboard.writeText(await (await getPrintableListBlob())?.text() ?? "").then(() => {
+  navigator.clipboard.writeText(await (await get_printable_list_blob())?.text() ?? "").then(() => {
     borisToClipboardButton.children[0].classList.remove("btn-paper")
   })
 }
 
 declare global { interface Window { showSaveFilePicker?: any; } }
 const saveToCockatrice = async () => {
-  let title = getTitle()?.split("<")[0].trim().replace(/[^a-z A-Z]+/, '') + ".txt";
-  const blob = getPrintableListBlob();
+  let title = get_title()?.split("<")[0].trim().replace(/[^a-z A-Z]+/, '') + ".txt";
+  const blob = get_printable_list_blob();
   if (blob) {
     blob.then(async blob => {
       let handler: any = await window.showSaveFilePicker({
@@ -168,18 +216,12 @@ const addToSavedDecksList = () => {
     if (!savedLists.filter(u => u.url === url).length) {
       const format_text = document.querySelector("p.deck-container-information")?.innerHTML!;
       const format = format_text.slice(format_text.search("Format: ") + 8, format_text.search("<br>"))
-      savedLists.push({ url: url, title: ("<strong>" + format + "</strong> | " ?? "") + getTitle() ?? url })
+      savedLists.push({ url: url, title: ("<strong>" + format + "</strong> | " ?? "") + get_title() ?? url })
     }
 
     chrome.storage.sync.set({ saved_lists: savedLists.sort((a, b) => a.title.localeCompare(b.title)) }, () => updateSavedListsDropdown());
   });
 }
-
-fetch_cards().then((list) => {
-  convert_prices(list);
-  set_total(page_values.total);
-  togglePrices();
-})
 
 const borisNav = document.createElement("ul");
 borisNav.classList.add("nav", "nav-pills", "deck-type-menu");
@@ -190,6 +232,7 @@ const borisToggleButton = borisToggleOuterButton.children[0];
 borisToggleButton.classList.add("btn-online-muted");
 const borisToClipboardButton = navButtonFactory("Copy");
 const borisCockatriceButton = navButtonFactory("Cockatrice");
+const borisCheapestButton = navButtonFactory("Cheapest");
 const borisSaveDeckButton = navButtonFactory("Save");
 const borisRemoveDeckButton = navButtonFactory("Saved");
 borisRemoveDeckButton.classList.add("show");
@@ -197,12 +240,27 @@ borisRemoveDeckButton.classList.add("show");
 borisNav.appendChild(borisToggleOuterButton);
 borisNav.appendChild(borisToClipboardButton);
 borisNav.appendChild(borisCockatriceButton);
+borisNav.appendChild(borisCheapestButton);
 borisNav.appendChild(borisSaveDeckButton);
-updateSavedListsDropdown();
 
 document.querySelector("ul.deck-type-menu")?.after(borisNav);
 
-borisToggleButton.addEventListener("click", togglePrices);
-borisToClipboardButton.addEventListener("click", copyToClipboard);
-borisCockatriceButton.addEventListener("click", saveToCockatrice)
-borisSaveDeckButton.addEventListener("click", addToSavedDecksList);
+fetch_cards().then((list) => {
+  page_values.card_list = list;
+  convertAllPrices(list);
+  setTotal(page_values.total);
+  togglePrices();
+}).finally(() => {
+  if (chrome.runtime?.id) {
+    chrome.storage.sync.get(['auto'], (data) => {
+      data.auto ? addCheapestPrices() : chrome.storage.sync.set({ auto: false });
+    });
+  }
+
+  updateSavedListsDropdown();
+  borisToggleButton.addEventListener("click", togglePrices);
+  borisToClipboardButton.addEventListener("click", copyToClipboard);
+  borisCockatriceButton.addEventListener("click", saveToCockatrice)
+  borisCheapestButton.addEventListener("click", addCheapestPrices)
+  borisSaveDeckButton.addEventListener("click", addToSavedDecksList);
+});

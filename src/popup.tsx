@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { ISavedList } from "./interfaces";
+import { Options } from "./options";
 
 const Popup = () => {
   const [savedLists, setSavedLists] = useState<ISavedList[]>([]);
@@ -26,6 +27,7 @@ const Popup = () => {
 
 ReactDOM.render(
   <React.StrictMode>
+    <Options />
     <Popup />
   </React.StrictMode>,
   document.getElementById("root")

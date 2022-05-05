@@ -19,7 +19,7 @@ export function parse_row(row_parts: NodeListOf<HTMLTableCellElement>) {
     return row
 }
 
-export function getPrintableListBlob(): Promise<Blob> | undefined {
+export function get_printable_list_blob(): Promise<Blob> | undefined {
     for (const a of document.querySelectorAll("a")) {
         if (a.innerText?.includes("Text File")) {
             return fetch(a.href)
@@ -28,12 +28,12 @@ export function getPrintableListBlob(): Promise<Blob> | undefined {
     }
 }
 
-export const getTitle = () => {
+export const get_title = () => {
     return document.querySelector("h1.title")?.innerHTML;
 }
 
 export function load_cards(): (IInternalCardModel)[] {
-    let text_list: (IInternalCardModel)[] = [];
+    let text_list: IInternalCardModel[] = [];
 
     document.querySelector("table.deck-view-deck-table")?.querySelectorAll("tr:not(.deck-category-header)").forEach((e, i) => {
         const row = parse_row(e.querySelectorAll("td"));
@@ -60,6 +60,22 @@ export async function fetch_single(name: string): Promise<any> {
         "https://api.scryfall.com/cards/named?fuzzy=" + name
     ).then(async r => {
         return await r.json();
+    });
+}
+
+export async function fetch_cheapest(name: string): Promise<any> {
+    return fetch(
+        "https://api.scryfall.com/cards/search?order=eur&unique=prints&dir=asc&q=!\"" + name + "\""
+    ).then(async r => {
+        return await r.json();
+    }).then(async (r: any) => {
+        if (r.has_more) {
+            const more = await fetch(r.next_page).then(async r => {
+                return await r.json();
+            })
+            r.data.push(...more.data)
+        }
+        return r;
     });
 }
 
