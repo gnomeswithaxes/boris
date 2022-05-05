@@ -91,6 +91,7 @@ function convertAllPrices(card_list: IScryfallCard[]) {
       convertPrice(row, card)
     else
       fetch_single(row.name).then((card: IScryfallCard) => {
+        page_values.card_list.push(card);
         if (card.purchase_uris.cardmarket)
           convertPrice(row, card)
         else
@@ -226,11 +227,11 @@ fetch_cards().then((list) => {
   setTotal(page_values.total);
   togglePrices();
 }).finally(() => {
-  if (chrome.runtime?.id) {
+  if (chrome.runtime?.id)
     chrome.storage.sync.get(['auto'], (data) => {
       data.auto ? addCheapestPrices() : chrome.storage.sync.set({ auto: false });
     });
-  }
+
 
   updateSavedListsDropdown();
   borisNav.appendChild(borisToggleOuterButton);
