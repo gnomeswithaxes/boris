@@ -82,7 +82,8 @@ function convertPrice(row: any, card: IScryfallCard) {
   page_values.total += eur_price;
 }
 
-function convertAllPrices(card_list: IScryfallCard[]) {
+async function convertAllPrices() {
+  const card_list = page_values.card_list;
   const table_rows = document.querySelector("table.deck-view-deck-table")?.querySelectorAll("tr:not(.deck-category-header)");
   if (table_rows?.length) {
     for (const tr of table_rows) {
@@ -92,7 +93,7 @@ function convertAllPrices(card_list: IScryfallCard[]) {
       if (card)
         convertPrice(row, card)
       else {
-        fetch_single(row.name).then((card: IScryfallCard) => {
+        await fetch_single(row.name).then((card: IScryfallCard) => {
           page_values.card_list.push(card);
           if (card.purchase_uris.cardmarket)
             convertPrice(row, card)
@@ -132,7 +133,7 @@ async function addCheapestPrices() {
             "<a style='color: darkviolet;' href=\"" + card_uri + "\">" +
             "<span> €&nbsp;" + eur_price.toLocaleString("en-us", { minimumFractionDigits: 2 }) + "</span></a>"
         } else {
-          td.innerHTML = "<span style='color: orange;'>--------</span>"
+          td.innerHTML = "<span style='color: orange;'> €&nbsp;XX.XX </span>"
         }
         row_element.appendChild(td)
       }
@@ -206,6 +207,9 @@ const addToSavedDecksList = () => {
   });
 }
 
+const borisPrices = document.createElement("div");
+borisPrices.classList.add("header-prices-boris", "header-prices-currency");
+
 const borisNav = document.createElement("ul");
 borisNav.classList.add("nav", "nav-pills", "deck-type-menu");
 borisNav.style.justifyContent = "start"
@@ -220,11 +224,12 @@ const borisSaveDeckButton = navButtonFactory("Save");
 const borisRemoveDeckButton = navButtonFactory("Saved");
 borisRemoveDeckButton.classList.add("show");
 
+document.querySelector("div.header-prices-currency")?.after(borisPrices);
 document.querySelector("ul.deck-type-menu")?.after(borisNav);
 
-fetch_cards().then((list) => {
+fetch_cards().then(async (list) => {
   page_values.card_list = list;
-  convertAllPrices(list);
+  await convertAllPrices();
   setTotal(page_values.total);
   togglePrices();
 }).then(() => {

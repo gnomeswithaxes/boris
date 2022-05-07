@@ -30,7 +30,7 @@ export function setTotal(total: number) {
     document.head.insertAdjacentHTML("beforeend", `<style>.boris-price:before {content: "Boris";}</style>`);
     price_div.style.color = "#f0ad4e";
 
-    document.querySelector(".header-prices-currency")?.prepend(price_div);
+    document.querySelector(".header-prices-boris")?.prepend(price_div);
 }
 
 export function setCheapestTotal(total: number) {
@@ -40,7 +40,7 @@ export function setCheapestTotal(total: number) {
     document.head.insertAdjacentHTML("beforeend", `<style>.boris-cheapest:before {content: "Cheapest";}</style>`);
     price_div.style.color = "darkviolet";
 
-    document.querySelector(".header-prices-currency")?.prepend(price_div);
+    document.querySelector(".header-prices-boris")?.prepend(price_div);
 }
 
 export function newDropdownItem(list: ISavedList, deleteFunction: Function) {
@@ -48,7 +48,6 @@ export function newDropdownItem(list: ISavedList, deleteFunction: Function) {
     div.classList.add("dropdown-item");
 
     const link = document.createElement("a");
-    // link.style.textDecoration = "none";
     link.style.color = "black";
     link.style.paddingLeft = "1em";
     link.innerHTML = list.title;
