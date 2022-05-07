@@ -57,9 +57,9 @@ function updateSavedListsDropdown() {
 
       document.head.insertAdjacentHTML("beforeend", `<style>.dropdown-item:hover, .dropdown-item:focus { background-color: #d6d6d6; }</style>`);
 
-      result.saved_lists.forEach((list: ISavedList) => {
+      for (const list of result.saved_lists) {
         div.appendChild(newDropdownItem(list, removeSavedList));
-      });
+      }
 
       li.appendChild(a);
       li.appendChild(div);
@@ -70,7 +70,7 @@ function updateSavedListsDropdown() {
 }
 
 function convertPrice(row: any, card: IScryfallCard) {
-  const eur_price = parseFloat(card.prices?.eur ?? 0) * row.amount;
+  const eur_price = parseFloat((card.prices?.eur ?? card.prices?.eur_foil) ?? 0) * row.amount;
   const card_uri = card.purchase_uris.cardmarket ?? card.scryfall_uri
 
   row.price.innerHTML =
@@ -83,47 +83,48 @@ function convertPrice(row: any, card: IScryfallCard) {
 }
 
 function convertAllPrices(card_list: IScryfallCard[]) {
-  document.querySelector("table.deck-view-deck-table")?.querySelectorAll("tr:not(.deck-category-header)").forEach((e, i) => {
-    const row = parse_row(e.querySelectorAll("td"));
-    let card: IScryfallCard | undefined = card_list.find(c => c.name.toLowerCase().includes(row.name.toLowerCase()));
+  const table_rows = document.querySelector("table.deck-view-deck-table")?.querySelectorAll("tr:not(.deck-category-header)");
+  if (table_rows?.length) {
+    for (const tr of table_rows) {
+      const row = parse_row(tr.querySelectorAll("td"));
+      let card: IScryfallCard | undefined = card_list.find(c => c.name.toLowerCase().includes(row.name.toLowerCase()));
 
-    if (card)
-      convertPrice(row, card)
-    else
-      fetch_single(row.name).then((card: IScryfallCard) => {
-        page_values.card_list.push(card);
-        if (card.purchase_uris.cardmarket)
-          convertPrice(row, card)
-        else
-          row.price.innerHTML = "<span style='color: orange''>" + row.price.innerHTML + "</span>"
-      })
-  })
+      if (card)
+        convertPrice(row, card)
+      else {
+        fetch_single(row.name).then((card: IScryfallCard) => {
+          page_values.card_list.push(card);
+          if (card.purchase_uris.cardmarket)
+            convertPrice(row, card)
+          else
+            row.price.innerHTML = "<span style='color: orange''>" + row.price.innerHTML + "</span>"
+        })
+      }
+    }
+  }
 }
 
 async function addCheapestPrices() {
   borisCheapestButton.remove();
 
   if (page_values.card_list.length) {
-    let requests: Promise<any>[] = []
-
-    for (const card of page_values.card_list) { requests.push(fetch_cheapest(card.name)) };
-
-    await Promise.all(requests).then((responses) => {
+    await Promise.all(page_values.card_list.map((card) => fetch_cheapest(card.name))).then((responses) => {
       let card_list: IScryfallCard[] = [];
-      responses.forEach((r) => {
-        card_list.push(r.data?.filter((r: IScryfallCard) => r.prices?.eur !== null)[0])
-      })
+      for (const r of responses) {
+        card_list.push(r.data?.filter((r: IScryfallCard) => r.prices?.eur || r.prices?.eur_foil)[0])
+      }
 
       document.querySelectorAll("tr.deck-category-header>th").forEach((th) => (th as HTMLTableCellElement).colSpan = 5);
       let total = 0;
-      document.querySelectorAll(".boris").forEach((e) => {
+
+      for (const e of document.querySelectorAll(".boris")) {
         const row_element = e.parentElement!
         const row = parse_row(row_element.querySelectorAll("td"));
         let card: IScryfallCard | undefined = card_list.find(c => c.name?.toLowerCase().includes(row.name.toLowerCase()));
         const td = document.createElement("td");
         td.classList.add("text-right");
         if (card) {
-          const eur_price = parseFloat(card.prices?.eur) * row.amount;
+          const eur_price = parseFloat((card.prices?.eur ?? card.prices?.eur_foil) ?? 0) * row.amount;
           const card_uri = card.scryfall_uri ?? "javascript:void(0)";
           total += eur_price;
 
@@ -134,7 +135,7 @@ async function addCheapestPrices() {
           td.innerHTML = "<span style='color: orange;'>--------</span>"
         }
         row_element.appendChild(td)
-      })
+      }
       setCheapestTotal(total);
     })
   }
@@ -226,7 +227,7 @@ fetch_cards().then((list) => {
   convertAllPrices(list);
   setTotal(page_values.total);
   togglePrices();
-}).finally(() => {
+}).then(() => {
   if (chrome.runtime?.id)
     chrome.storage.sync.get(['auto'], (data) => {
       data.auto ? addCheapestPrices() : chrome.storage.sync.set({ auto: false });
@@ -245,3 +246,5 @@ fetch_cards().then((list) => {
   borisNav.appendChild(borisSaveDeckButton);
   borisSaveDeckButton.addEventListener("click", addToSavedDecksList);
 });
+
+// TODO controllo prezzo foil più basso => colore diverso

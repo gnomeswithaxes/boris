@@ -67,16 +67,17 @@ export async function fetch_cheapest(name: string): Promise<any> {
     return fetch(
         "https://api.scryfall.com/cards/search?order=eur&unique=prints&dir=asc&q=!\"" + name + "\""
     ).then(async r => {
-        return await r.json();
-    }).then(async (r: any) => {
-        if (r.has_more) {
-            const more = await fetch(r.next_page).then(async r => {
-                return await r.json();
-            })
-            r.data.push(...more.data)
+        let response = await r.json();
+        if (response.has_more) {
+            const more = await fetch(response.next_page).then(async r => { return await r.json() })
+            response.data.push(...more.data)
         }
-        return r;
+        return response;
     });
+}
+
+export function get_cheapest(prints_list: any) {
+    prints_list.data?.filter((r: IScryfallCard) => r.prices?.eur || r.prices?.eur_foil );
 }
 
 export async function fetch_cards() {
@@ -87,11 +88,10 @@ export async function fetch_cards() {
         requests.push(fetch_collection(text_list.splice(0, 75).map(c => c.set.length < 3 || c.set.length > 5 ? { name: c.name } : { name: c.name, set: c.set })))
     }
 
-    return await Promise.all(requests).then((responses) => {
-        responses.forEach(async (response: any) => {
+    return await Promise.all(requests).then((responses: any[]) => {
+        for (const response of responses) {
             card_list = [...card_list, ...response.data];
-
-        });
+        };
         return card_list;
     })
 }
