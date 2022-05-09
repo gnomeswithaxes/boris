@@ -1,6 +1,6 @@
 import { navButtonFactory, newDropdownItem, setCheapestTotal, setTotal } from "./components";
 import { ISavedList, IScryfallCard } from "./interfaces";
-import { fetch_cards, fetch_cheapest, fetch_single, get_printable_list_blob, get_title, parse_row } from "./utilities";
+import { fetch_cards, fetch_cheapest, fetch_single, get_cheapest, get_printable_list_blob, get_title, parse_row } from "./utilities";
 
 let page_values = {
   total: 0,
@@ -69,8 +69,15 @@ function updateSavedListsDropdown() {
   })
 }
 
-function convertPrice(row: any, card: IScryfallCard) {
-  const eur_price = parseFloat((card.prices?.eur ?? card.prices?.eur_foil) ?? 0) * row.amount;
+async function convertPrice(row: any, card: IScryfallCard) {
+  let eur_price;
+  if (!(card.prices?.eur || card.prices?.eur_foil)) {
+    const cheap = await get_cheapest(card.name);
+    eur_price = parseFloat(cheap.prices?.eur ?? cheap.prices?.eur_foil) * row.amount;
+  } else {
+    eur_price = parseFloat(card.prices?.eur ?? card.prices?.eur_foil) * row.amount;
+  }
+
   const card_uri = card.purchase_uris.cardmarket ?? card.scryfall_uri
 
   row.price.innerHTML =
@@ -89,17 +96,13 @@ async function convertAllPrices() {
     for (const tr of table_rows) {
       const row = parse_row(tr.querySelectorAll("td"));
       let card: IScryfallCard | undefined = card_list.find(c => c.name.toLowerCase().includes(row.name.toLowerCase()));
-
-      if (card)
-        convertPrice(row, card)
-      else {
-        await fetch_single(row.name).then((card: IScryfallCard) => {
-          page_values.card_list.push(card);
-          if (card.purchase_uris.cardmarket)
-            convertPrice(row, card)
-          else
-            row.price.innerHTML = "<span style='color: orange''>" + row.price.innerHTML + "</span>"
-        })
+      if (card) {
+        if (card.border_color === "gold") {
+          card = await get_cheapest(card.name);
+        }
+        convertPrice(row, card!)
+      } else {
+        row.price.innerHTML = "<span style='color: orange''>" + row.price.innerHTML + "</span>"
       }
     }
   }
@@ -109,10 +112,10 @@ async function addCheapestPrices() {
   borisCheapestButton.remove();
 
   if (page_values.card_list.length) {
-    await Promise.all(page_values.card_list.map((card) => fetch_cheapest(card.name))).then((responses) => {
+    await Promise.all(page_values.card_list.map((card) => get_cheapest(card.name))).then((cheapest_cards) => {
       let card_list: IScryfallCard[] = [];
-      for (const r of responses) {
-        card_list.push(r.data?.filter((r: IScryfallCard) => r.prices?.eur || r.prices?.eur_foil)[0])
+      for (const c of cheapest_cards) {
+        card_list.push(c);
       }
 
       document.querySelectorAll("tr.deck-category-header>th").forEach((th) => (th as HTMLTableCellElement).colSpan = 5);

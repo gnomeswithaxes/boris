@@ -76,9 +76,11 @@ export async function fetch_cheapest(name: string): Promise<any> {
     });
 }
 
-export function get_cheapest(prints_list: any) {
-    prints_list.data?.filter((r: IScryfallCard) => r.prices?.eur || r.prices?.eur_foil );
+export async function get_cheapest(name: string): Promise<IScryfallCard> {
+    const prints_list = await fetch_cheapest(name);
+    return prints_list.data?.filter((r: IScryfallCard) => (r.prices?.eur || r.prices?.eur_foil) && r.border_color !== "gold")[0];
 }
+
 
 export async function fetch_cards() {
     let text_list = load_cards();
@@ -88,9 +90,12 @@ export async function fetch_cards() {
         requests.push(fetch_collection(text_list.splice(0, 75).map(c => c.set.length < 3 || c.set.length > 5 ? { name: c.name } : { name: c.name, set: c.set })))
     }
 
-    return await Promise.all(requests).then((responses: any[]) => {
+    return await Promise.all(requests).then(async (responses: any[]) => {
         for (const response of responses) {
             card_list = [...card_list, ...response.data];
+            for (const card of response.not_found) {
+                card_list.push(await get_cheapest(card.name))
+            }
         };
         return card_list;
     })
