@@ -94,9 +94,11 @@ export async function fetch_cards() {
         for (const response of responses) {
             card_list = [...card_list, ...response.data];
             for (const card of response.not_found) {
-                card_list.push(await get_cheapest(card.name))
+                const cheapest = await get_cheapest(card.name);
+                card_list.push(cheapest);
             }
         };
+        console.log(card_list)
         return card_list;
     })
 }

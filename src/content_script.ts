@@ -71,7 +71,7 @@ function updateSavedListsDropdown() {
 
 async function convertPrice(row: any, card: IScryfallCard) {
   let eur_price;
-  if (!(card.prices?.eur || card.prices?.eur_foil)) {
+  if ((card.prices?.eur === null && card.prices?.eur_foil === null) || card.border_color === "gold") {
     const cheap = await get_cheapest(card.name);
     eur_price = parseFloat(cheap.prices?.eur ?? cheap.prices?.eur_foil) * row.amount;
   } else {
@@ -97,10 +97,7 @@ async function convertAllPrices() {
       const row = parse_row(tr.querySelectorAll("td"));
       let card: IScryfallCard | undefined = card_list.find(c => c.name.toLowerCase().includes(row.name.toLowerCase()));
       if (card) {
-        if (card.border_color === "gold") {
-          card = await get_cheapest(card.name);
-        }
-        convertPrice(row, card!)
+          await convertPrice(row, card);
       } else {
         row.price.innerHTML = "<span style='color: orange''>" + row.price.innerHTML + "</span>"
       }
