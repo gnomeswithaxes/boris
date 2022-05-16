@@ -28,6 +28,26 @@ export function get_printable_list_blob(): Promise<Blob> | undefined {
     }
 }
 
+declare global { interface Window { showSaveFilePicker?: any; } }
+export const saveToCockatrice = async () => {
+  let title = get_title()?.split("<")[0].trim().replace(/[^a-z A-Z]+/, '') + ".txt";
+  const blob = get_printable_list_blob();
+  if (blob) {
+    blob.then(async blob => {
+      let handler: any = await window.showSaveFilePicker({
+        suggestedName: title ?? "",
+        types: [{
+          description: 'Text file',
+          accept: { 'text/plain': ['.txt'] },
+        }],
+      });
+      const writable = await handler.createWritable();
+      await writable.write(blob);
+      writable.close();
+    })
+  }
+}
+
 export const get_title = () => {
     return document.querySelector("h1.title")?.innerHTML;
 }
@@ -81,7 +101,6 @@ export async function get_cheapest(name: string): Promise<IScryfallCard> {
     return prints_list.data?.filter((r: IScryfallCard) => (r.prices?.eur || r.prices?.eur_foil) && r.border_color !== "gold")[0];
 }
 
-
 export async function fetch_cards() {
     let text_list = load_cards();
     let card_list: IScryfallCard[] = [];
@@ -98,7 +117,8 @@ export async function fetch_cards() {
                 card_list.push(cheapest);
             }
         };
-        console.log(card_list)
         return card_list;
     })
 }
+
+export const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));

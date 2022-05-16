@@ -1,12 +1,22 @@
 import { navButtonFactory, newDropdownItem, setCheapestTotal, setTotal } from "./components";
 import { ISavedList, IScryfallCard } from "./interfaces";
-import { fetch_cards, fetch_cheapest, fetch_single, get_cheapest, get_printable_list_blob, get_title, parse_row } from "./utilities";
+import { fetch_cards, get_cheapest, get_printable_list_blob, get_title, parse_row, saveToCockatrice, sleep } from "./utilities";
 
 let page_values = {
   total: 0,
   sizeToggle: true,
   card_list: [] as IScryfallCard[],
 }
+
+let borisPrices: any;
+let borisNav: any;
+let borisToggleOuterButton: any;
+let borisToggleButton: any;
+let borisToClipboardButton: any;
+let borisCockatriceButton: any;
+let borisCheapestButton: any;
+let borisSaveDeckButton: any;
+let borisRemoveDeckButton: any;
 
 function removeSavedList(to_delete: string) {
   chrome.storage.sync.get('saved_lists', (result) => {
@@ -97,7 +107,7 @@ async function convertAllPrices() {
       const row = parse_row(tr.querySelectorAll("td"));
       let card: IScryfallCard | undefined = card_list.find(c => c.name.toLowerCase().includes(row.name.toLowerCase()));
       if (card) {
-          await convertPrice(row, card);
+        await convertPrice(row, card);
       } else {
         row.price.innerHTML = "<span style='color: orange''>" + row.price.innerHTML + "</span>"
       }
@@ -169,26 +179,6 @@ const copyToClipboard = async () => {
   })
 }
 
-declare global { interface Window { showSaveFilePicker?: any; } }
-const saveToCockatrice = async () => {
-  let title = get_title()?.split("<")[0].trim().replace(/[^a-z A-Z]+/, '') + ".txt";
-  const blob = get_printable_list_blob();
-  if (blob) {
-    blob.then(async blob => {
-      let handler: any = await window.showSaveFilePicker({
-        suggestedName: title ?? "",
-        types: [{
-          description: 'Text file',
-          accept: { 'text/plain': ['.txt'] },
-        }],
-      });
-      const writable = await handler.createWritable();
-      await writable.write(blob);
-      writable.close();
-    })
-  }
-}
-
 const addToSavedDecksList = () => {
   chrome.storage.sync.get('saved_lists', (result) => {
     if (result.saved_lists)
@@ -207,49 +197,91 @@ const addToSavedDecksList = () => {
   });
 }
 
-const borisPrices = document.createElement("div");
-borisPrices.classList.add("header-prices-boris", "header-prices-currency");
+function createBorisComponents() {
+  borisPrices = document.createElement("div");
+  borisPrices.classList.add("header-prices-boris", "header-prices-currency");
+  document.querySelector("div.header-prices-currency")?.after(borisPrices);
+  borisNav = document.createElement("ul");
+  borisNav.classList.add("nav", "nav-pills", "deck-type-menu");
+  borisNav.style.justifyContent = "start"
+  document.querySelector("ul.deck-type-menu")?.after(borisNav);
 
-const borisNav = document.createElement("ul");
-borisNav.classList.add("nav", "nav-pills", "deck-type-menu");
-borisNav.style.justifyContent = "start"
+  borisToggleOuterButton = navButtonFactory("Boris");
+  borisToggleButton = borisToggleOuterButton.children[0];
+  borisToClipboardButton = navButtonFactory("Copy");
+  borisCockatriceButton = navButtonFactory("Cockatrice");
+  borisCheapestButton = navButtonFactory("Cheapest");
+  borisSaveDeckButton = navButtonFactory("Save");
+  borisRemoveDeckButton = navButtonFactory("Saved");
 
-const borisToggleOuterButton = navButtonFactory("Boris");
-const borisToggleButton = borisToggleOuterButton.children[0];
-borisToggleButton.classList.add("btn-online-muted");
-const borisToClipboardButton = navButtonFactory("Copy");
-const borisCockatriceButton = navButtonFactory("Cockatrice");
-const borisCheapestButton = navButtonFactory("Cheapest");
-const borisSaveDeckButton = navButtonFactory("Save");
-const borisRemoveDeckButton = navButtonFactory("Saved");
-borisRemoveDeckButton.classList.add("show");
+  borisToggleButton.classList.add("btn-online-muted");
+  borisRemoveDeckButton.classList.add("show");
+}
 
-document.querySelector("div.header-prices-currency")?.after(borisPrices);
-document.querySelector("ul.deck-type-menu")?.after(borisNav);
-
-fetch_cards().then(async (list) => {
-  page_values.card_list = list;
-  await convertAllPrices();
-  setTotal(page_values.total);
-  togglePrices();
-}).then(() => {
-  if (chrome.runtime?.id)
-    chrome.storage.sync.get(['auto'], (data) => {
-      data.auto ? addCheapestPrices() : chrome.storage.sync.set({ auto: false });
-    });
-
-
-  updateSavedListsDropdown();
+function addButtons() {
   borisNav.appendChild(borisToggleOuterButton);
-  borisToggleButton.addEventListener("click", togglePrices);
   borisNav.appendChild(borisToClipboardButton);
-  borisToClipboardButton.addEventListener("click", copyToClipboard);
   borisNav.appendChild(borisCockatriceButton);
-  borisCockatriceButton.addEventListener("click", saveToCockatrice)
   borisNav.appendChild(borisCheapestButton);
-  borisCheapestButton.addEventListener("click", addCheapestPrices)
   borisNav.appendChild(borisSaveDeckButton);
+  borisToggleButton.addEventListener("click", togglePrices);
+  borisToClipboardButton.addEventListener("click", copyToClipboard);
+  borisCockatriceButton.addEventListener("click", saveToCockatrice)
+  borisCheapestButton.addEventListener("click", addCheapestPrices)
   borisSaveDeckButton.addEventListener("click", addToSavedDecksList);
-});
+}
+
+function removeBorisComponents() {
+  borisToggleOuterButton.remove();
+  borisToggleButton.remove();
+  borisToClipboardButton.remove();
+  borisCockatriceButton.remove();
+  borisCheapestButton.remove();
+  borisSaveDeckButton.remove();
+  borisRemoveDeckButton.remove();
+  borisPrices.remove();
+  borisNav.remove();
+}
+
+function borisDecklist() {
+  fetch_cards().then(async (list) => {
+    page_values.card_list = list;
+    await convertAllPrices();
+    setTotal(page_values.total);
+    togglePrices();
+  }).then(() => {
+    if (chrome.runtime?.id) {
+      chrome.storage.sync.get(['auto'], (data) => {
+        data.auto ? addCheapestPrices() : chrome.storage.sync.set({ auto: false });
+      });
+    }
+    updateSavedListsDropdown();
+    addButtons();
+  });
+}
+
+function borisDeckeditor() {
+  document.getElementById("preview")?.addEventListener("click", async () => {
+    page_values.total = 0;
+    page_values.sizeToggle = true;
+    page_values.card_list = [] as IScryfallCard[];
+    sleep(2000).then(() => {
+      removeBorisComponents();
+      createBorisComponents();
+      borisDecklist();
+    });
+  });
+}
+
+if (window.location.hostname.includes("mtggoldfish.com")) {
+  const page_url = window.location.pathname;
+  if (page_url.includes("decks")) {
+    borisDeckeditor();
+  }
+  if (page_url.includes("deck") || page_url.includes("archetype")) {
+    createBorisComponents();
+    borisDecklist();
+  }
+}
 
 // TODO controllo prezzo foil più basso => colore diverso
