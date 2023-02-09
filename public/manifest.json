@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
 
-  "name": "Boris: the Italian Goldfish (TS)",
+  "name": "Boris the Italian Goldfish (TS)",
   "description": "Conversione prezzi da usd a eur su mtggoldfish.com",
   "version": "1.5",
 

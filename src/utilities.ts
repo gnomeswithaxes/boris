@@ -19,13 +19,14 @@ export function parse_row(row_parts: NodeListOf<HTMLTableCellElement>) {
     return row
 }
 
-export function get_printable_list_blob(): Promise<Blob> | undefined {
+export function get_printable_list_blob(): Promise<Blob> {
     for (const a of document.querySelectorAll("a")) {
         if (a.innerText?.includes("Text File")) {
             return fetch(a.href)
                 .then(res => { return res.blob() })
         }
     }
+    return Promise.resolve(new Blob([""]));
 }
 
 declare global { interface Window { showSaveFilePicker?: any; } }

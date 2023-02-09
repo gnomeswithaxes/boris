@@ -174,7 +174,15 @@ const togglePrices = () => {
 
 const copyToClipboard = async () => {
   borisToClipboardButton.children[0].classList.add("btn-paper");
-  navigator.clipboard.writeText(await (await get_printable_list_blob())?.text() ?? "").then(() => {
+  const clipboardItem = new ClipboardItem({
+    'text/plain': get_printable_list_blob().then((result) => {
+      return new Promise(async (resolve) => {
+        resolve(new Blob([(result ? result : "Errore")], {type: 'text/plain'}))
+      })
+    }),
+  });
+
+  navigator.clipboard.write([clipboardItem]).then(() => {
     borisToClipboardButton.children[0].classList.remove("btn-paper")
   })
 }
