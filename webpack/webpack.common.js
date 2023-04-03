@@ -2,13 +2,16 @@ const webpack = require("webpack");
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
 const srcDir = path.join(__dirname, "..", "src");
+const goldfishDir = path.join(srcDir, "mtggoldfish");
+const mkmDir = path.join(srcDir, "cardmarket");
 
 module.exports = {
     entry: {
-      popup: path.join(srcDir, 'popup.tsx'),
-      options: path.join(srcDir, 'options.tsx'),
-      background: path.join(srcDir, 'background.ts'),
-      content_script: path.join(srcDir, 'content_script.ts'),
+        popup: path.join(srcDir, 'popup.tsx'), 
+        options: path.join(srcDir, 'options.tsx'),
+        background: path.join(srcDir, 'background.ts'),
+        "mtggoldfish/content_script": path.join(goldfishDir, 'content_script.ts'),
+        "cardmarket/content_script": path.join(mkmDir, 'content_script.ts')
     },
     output: {
         path: path.join(__dirname, "../dist/js"),
@@ -18,7 +21,7 @@ module.exports = {
         splitChunks: {
             name: "vendor",
             chunks(chunk) {
-              return chunk.name !== 'background';
+                return chunk.name !== 'background';
             }
         },
     },

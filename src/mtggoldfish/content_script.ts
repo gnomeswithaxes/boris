@@ -1,6 +1,7 @@
+import { get_cheapest, fetch_cards } from "../common/scryfall";
 import { navButtonFactory, newDropdownItem, setCheapestTotal, setTotal } from "./components";
 import { ISavedList, IScryfallCard } from "./interfaces";
-import { fetch_cards, get_cheapest, get_printable_list_blob, get_title, parse_row, saveToCockatrice, sleep } from "./utilities";
+import { get_printable_list_blob, get_title, parse_row, saveToCockatrice, sleep } from "./utilities";
 
 let page_values = {
   total: 0,
@@ -281,7 +282,7 @@ function borisDeckeditor() {
   });
 }
 
-if (window.location.hostname.includes("mtggoldfish.com")) {
+if (window.location.hostname.includes("mtggoldfish.com")) { // controllo inutile?
   const page_url = window.location.pathname;
   if (page_url.includes("decks")) {
     borisDeckeditor();
