@@ -1,4 +1,4 @@
-import { ISavedList } from "./interfaces";
+import { ISavedList } from "../common/interfaces";
 
 export function navButtonFactory(text: string): Element {
     const li = document.createElement("li");

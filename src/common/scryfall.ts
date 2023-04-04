@@ -1,4 +1,4 @@
-import { IScryfallCard } from "../mtggoldfish/interfaces";
+import { IScryfallCard } from "./interfaces";
 import { load_cards } from "../mtggoldfish/utilities";
 
 export async function fetch_collection(ids: any[]): Promise<any> {

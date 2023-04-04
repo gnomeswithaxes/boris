@@ -26,7 +26,7 @@ export const Options = () => {
 
   return (
     <div>
-      <h2>Automatic Cheapest Prices Conversion</h2>
+      <h2>Automatic Cheapest Prices Conversion in mtggoldfish.com</h2>
       <label className="switch">
         <input id="auto" type="checkbox"
           checked={checked}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
-import { ISavedList } from "./mtggoldfish/interfaces";
+import { ISavedList } from "./common/interfaces";
 import { Options } from "./options";
 
 const Popup = () => {

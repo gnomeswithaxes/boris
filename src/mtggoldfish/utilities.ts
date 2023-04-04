@@ -1,4 +1,4 @@
-import { IInternalCardModel } from "./interfaces";
+import { IInternalCardModel } from "../common/interfaces";
 
 export function parse_row(row_parts: NodeListOf<HTMLTableCellElement>) {
     const card = row_parts[1].querySelector("a");
