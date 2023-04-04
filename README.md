@@ -1,7 +1,7 @@
 # Boris - <i>The Italian Goldfish</i>
-Estensione Chrome per convertire i prezzi delle carte in MTGoldfish da dollari a euro
+Estensione Chrome per convertire i prezzi delle carte in [MTGGoldfish](www.mtggoldfish.com) da dollari a euro e aggiungere funzionalità a [cardmarket](www.cardmarket.com)
 
-Per installare: 
+Per installare o aggiornare: 
   - aprire cartella `boris/`
   - installare moduli: `> npm install`
   - eseguire build: `> npm run build`
