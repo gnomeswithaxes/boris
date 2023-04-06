@@ -8,7 +8,7 @@ jobs:
         uses: actions/checkout@v3
       
       - name: Make zip
-        run: zip -r -q boris.zip dist/
+        run: zip -r -q boris.zip dist -x "*.DS_Store"
 
       - name: Commit and push
         uses: EndBug/add-and-commit@v7
