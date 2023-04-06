@@ -53,11 +53,11 @@ export function showTrend() {
                 price_elem.innerHTML = "<span style='color: " + original_color + "'>" + price_elem.innerHTML + "<span>"
 
                 if (!foil) {
-                    if (exact_price > 0)
-                        price_elem.innerHTML += "<br><span style='color: " + exact_color + ";' >E: </span><a style='color: black' href='" + exact.scryfall_uri + "'> " + exact_price.toLocaleString("it-IT", { minimumFractionDigits: 2 }) + " €</a>"
+                    if (exact_price > 0 && cheapest.set != exact.set )
+                        price_elem.innerHTML += "<br><span style='color: " + exact_color + ";' >E </span><a style='color: black' href='" + exact.scryfall_uri + "'> " + exact_price.toLocaleString("it-IT", { minimumFractionDigits: 2 }) + " €</a>"
 
                     if (cheapest_price > 0)
-                        price_elem.innerHTML += "<br><span style='color: " + cheapest_color + ";'>L: </span><a style='color: black' href='" + cheapest.scryfall_uri + "'> " + cheapest_price.toLocaleString("it-IT", { minimumFractionDigits: 2 }) + " €</a>"
+                        price_elem.innerHTML += "<br><span style='color: " + cheapest_color + ";'>" + (cheapest.set == exact.set ? "E=" : "") + "L </span><a style='color: black' href='" + cheapest.scryfall_uri + "'> " + cheapest_price.toLocaleString("it-IT", { minimumFractionDigits: 2 }) + " €</a>"
                 }
             })
         }

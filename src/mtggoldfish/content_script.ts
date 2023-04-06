@@ -1,7 +1,8 @@
 import { get_cheapest, fetch_cards } from "../common/scryfall";
 import { navButtonFactory, newDropdownItem, setCheapestTotal, setTotal } from "./components";
 import { ISavedList, IScryfallCard } from "../common/interfaces";
-import { get_printable_list_blob, get_title, parse_row, saveToCockatrice, sleep } from "./utilities";
+import { get_printable_list_blob, get_title, parse_row, saveToCockatrice } from "./utilities";
+import { sleep } from "../common/utilities";
 
 let page_values = {
   total: 0,
