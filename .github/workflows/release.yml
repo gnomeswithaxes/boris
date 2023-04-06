@@ -1,5 +1,10 @@
 name: Compress dist folder
-on: [push]
+
+on: 
+  push:
+    branches:
+      - master
+
 jobs:
   To-Zip:
     runs-on: ubuntu-latest
