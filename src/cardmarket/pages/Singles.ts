@@ -54,7 +54,7 @@ function colorPrices(reference_price: number) {
     for (const elem of document.getElementsByClassName("price-container")) {
         const price_elem = elem.getElementsByClassName("font-weight-bold")[0] as HTMLElement
 
-        const playset_elem = price_elem.parentElement!.parentElement!.getElementsByClassName("extra-small")
+        const playset_elem = price_elem.parentElement!.parentElement!.getElementsByClassName("text-muted")
         let ppu = 0
         if (playset_elem.length > 0) {
             ppu = parseFloat(playset_elem[0].innerHTML?.match(/\d+(?:\,\d+)?/g)![0].replace(",", "."))

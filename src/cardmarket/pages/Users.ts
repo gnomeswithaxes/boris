@@ -27,7 +27,7 @@ export function showTrend() {
                 const price_elem = row.getElementsByClassName("price-container")[0].getElementsByClassName("font-weight-bold")[0]
                 const original_price = parseFloat(price_elem.innerHTML.replace(" €", "").replace(",", "."))
 
-                const playset_elem = price_elem.parentElement!.parentElement!.getElementsByClassName("extra-small")
+                const playset_elem = price_elem.parentElement!.parentElement!.getElementsByClassName("text-muted")
                 let ppu = 0
                 if (playset_elem.length > 0) {
                     ppu = parseFloat(playset_elem[0].innerHTML?.match(/\d+(?:\,\d+)?/g)![0].replace(",", "."))
