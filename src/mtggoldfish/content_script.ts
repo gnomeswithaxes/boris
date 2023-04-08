@@ -1,7 +1,7 @@
 import { get_cheapest, fetch_cards } from "../common/scryfall";
 import { navButtonFactory, newDropdownItem, setCheapestTotal, setTotal } from "./components";
-import { ISavedList, IScryfallCard } from "../common/interfaces";
-import { get_printable_list_blob, get_title, parse_row, saveToCockatrice } from "./utilities";
+import { IPinnedList, IScryfallCard } from "../common/interfaces";
+import { get_printable_list_blob, get_title, parse_row, saveToPC } from "./utilities";
 import { sleep } from "../common/utilities";
 
 let page_values = {
@@ -15,40 +15,40 @@ let borisNav: any;
 let borisToggleOuterButton: any;
 let borisToggleButton: any;
 let borisToClipboardButton: any;
-let borisCockatriceButton: any;
+let borisSaveAsButton: any;
 let borisCheapestButton: any;
-let borisSaveDeckButton: any;
-let borisRemoveDeckButton: any;
+let borisPinDeckButton: any;
+let borisUnpinDeckButton: any;
 
-function removeSavedList(to_delete: string) {
-  chrome.storage.sync.get('saved_lists', (result) => {
+function removePinnedList(to_delete: string) {
+  chrome.storage.sync.get('pinned_lists', (result) => {
     if (to_delete === window.location.href) {
-      borisNav.appendChild(borisSaveDeckButton);
-      borisSaveDeckButton.addEventListener("click", addToSavedDecksList);
-      borisRemoveDeckButton.remove();
+      borisNav.appendChild(borisPinDeckButton);
+      borisPinDeckButton.addEventListener("click", addToPinnedDecksList);
+      borisUnpinDeckButton.remove();
     }
 
-    const list = result.saved_lists.filter((l: ISavedList) => l.url !== to_delete);
+    const list = result.pinned_lists.filter((l: IPinnedList) => l.url !== to_delete);
 
     if (!list.length)
       document.getElementById("saved-lists-dropdown")?.remove();
 
-    chrome.storage.sync.set({ saved_lists: list }, () => updateSavedListsDropdown());
+    chrome.storage.sync.set({ pinned_lists: list }, () => updatePinnedListsDropdown());
   })
 }
 
-function toggleSaveDeck() {
-  borisSaveDeckButton.remove();
-  borisNav.appendChild(borisRemoveDeckButton);
-  borisRemoveDeckButton.addEventListener("click", () => removeSavedList(window.location.href))
+function togglePinDeck() {
+  borisPinDeckButton.remove();
+  borisNav.appendChild(borisUnpinDeckButton);
+  borisUnpinDeckButton.addEventListener("click", () => removePinnedList(window.location.href))
 }
 
-function updateSavedListsDropdown() {
-  chrome.storage.sync.get('saved_lists', (result) => {
-    if (result.saved_lists?.length > 0) {
+function updatePinnedListsDropdown() {
+  chrome.storage.sync.get('pinned_lists', (result) => {
+    if (result.pinned_lists?.length > 0) {
 
-      if (result.saved_lists.filter((l: ISavedList) => l.url === window.location.href).length) {
-        toggleSaveDeck();
+      if (result.pinned_lists.filter((l: IPinnedList) => l.url === window.location.href).length) {
+        togglePinDeck();
       }
 
       document.getElementById("saved-lists-dropdown")?.remove();
@@ -60,7 +60,7 @@ function updateSavedListsDropdown() {
 
       const a = document.createElement("a");
       a.classList.add("nav-link", "dropdown-toggle");
-      a.innerHTML = "Saved Lists";
+      a.innerHTML = "Pinned Lists";
       a.href = "#";
       a.setAttribute("data-toggle", "dropdown");
 
@@ -69,8 +69,8 @@ function updateSavedListsDropdown() {
 
       document.head.insertAdjacentHTML("beforeend", `<style>.dropdown-item:hover, .dropdown-item:focus { background-color: #d6d6d6; }</style>`);
 
-      for (const list of result.saved_lists) {
-        div.appendChild(newDropdownItem(list, removeSavedList));
+      for (const list of result.pinned_lists) {
+        div.appendChild(newDropdownItem(list, removePinnedList));
       }
 
       li.appendChild(a);
@@ -189,12 +189,12 @@ const copyToClipboard = async () => {
   })
 }
 
-const addToSavedDecksList = () => {
-  chrome.storage.sync.get('saved_lists', (result) => {
-    if (result.saved_lists)
-      var savedLists: ISavedList[] = result.saved_lists;
+const addToPinnedDecksList = () => {
+  chrome.storage.sync.get('pinned_lists', (result) => {
+    if (result.pinned_lists)
+      var savedLists: IPinnedList[] = result.pinned_lists;
     else
-      var savedLists: ISavedList[] = []
+      var savedLists: IPinnedList[] = []
 
     const url = window.location.href;
     if (!savedLists.filter(u => u.url === url).length) {
@@ -203,7 +203,7 @@ const addToSavedDecksList = () => {
       savedLists.push({ url: url, title: ("<strong>" + format + "</strong> | " ?? "") + get_title() ?? url })
     }
 
-    chrome.storage.sync.set({ saved_lists: savedLists.sort((a, b) => a.title.localeCompare(b.title)) }, () => updateSavedListsDropdown());
+    chrome.storage.sync.set({ pinned_lists: savedLists.sort((a, b) => a.title.localeCompare(b.title)) }, () => updatePinnedListsDropdown());
   });
 }
 
@@ -219,36 +219,36 @@ function createBorisComponents() {
   borisToggleOuterButton = navButtonFactory("Boris");
   borisToggleButton = borisToggleOuterButton.children[0];
   borisToClipboardButton = navButtonFactory("Copy");
-  borisCockatriceButton = navButtonFactory("Cockatrice");
+  borisSaveAsButton = navButtonFactory("Save as...");
   borisCheapestButton = navButtonFactory("Cheapest");
-  borisSaveDeckButton = navButtonFactory("Save");
-  borisRemoveDeckButton = navButtonFactory("Saved");
+  borisPinDeckButton = navButtonFactory("Pin");
+  borisUnpinDeckButton = navButtonFactory("Pinned");
 
   borisToggleButton.classList.add("btn-online-muted");
-  borisRemoveDeckButton.classList.add("show");
+  borisUnpinDeckButton.classList.add("show");
 }
 
 function addButtons() {
   borisNav.appendChild(borisToggleOuterButton);
-  borisNav.appendChild(borisToClipboardButton);
-  borisNav.appendChild(borisCockatriceButton);
   borisNav.appendChild(borisCheapestButton);
-  borisNav.appendChild(borisSaveDeckButton);
+  borisNav.appendChild(borisToClipboardButton);
+  borisNav.appendChild(borisSaveAsButton);
+  borisNav.appendChild(borisPinDeckButton);
   borisToggleButton.addEventListener("click", togglePrices);
   borisToClipboardButton.addEventListener("click", copyToClipboard);
-  borisCockatriceButton.addEventListener("click", saveToCockatrice)
+  borisSaveAsButton.addEventListener("click", saveToPC)
   borisCheapestButton.addEventListener("click", addCheapestPrices)
-  borisSaveDeckButton.addEventListener("click", addToSavedDecksList);
+  borisPinDeckButton.addEventListener("click", addToPinnedDecksList);
 }
 
 function removeBorisComponents() {
   borisToggleOuterButton.remove();
   borisToggleButton.remove();
-  borisToClipboardButton.remove();
-  borisCockatriceButton.remove();
   borisCheapestButton.remove();
-  borisSaveDeckButton.remove();
-  borisRemoveDeckButton.remove();
+  borisToClipboardButton.remove();
+  borisSaveAsButton.remove();
+  borisPinDeckButton.remove();
+  borisUnpinDeckButton.remove();
   borisPrices.remove();
   borisNav.remove();
 }
@@ -265,7 +265,7 @@ function borisDecklist() {
         data.auto ? addCheapestPrices() : chrome.storage.sync.set({ auto: false });
       });
     }
-    updateSavedListsDropdown();
+    updatePinnedListsDropdown();
     addButtons();
   });
 }

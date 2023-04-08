@@ -1,4 +1,4 @@
-export interface ISavedList {
+export interface IPinnedList {
     url: string,
     title: string
 }

@@ -1,4 +1,4 @@
-import { ISavedList } from "../common/interfaces";
+import { IPinnedList } from "../common/interfaces";
 
 export function navButtonFactory(text: string): Element {
     const li = document.createElement("li");
@@ -43,7 +43,7 @@ export function setCheapestTotal(total: number) {
     document.querySelector(".header-prices-boris")?.prepend(price_div);
 }
 
-export function newDropdownItem(list: ISavedList, deleteFunction: Function) {
+export function newDropdownItem(list: IPinnedList, deleteFunction: Function) {
     const div = document.createElement("div");
     div.classList.add("dropdown-item");
 

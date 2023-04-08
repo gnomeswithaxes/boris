@@ -30,7 +30,7 @@ export function get_printable_list_blob(): Promise<Blob> {
 }
 
 declare global { interface Window { showSaveFilePicker?: any; } }
-export const saveToCockatrice = async () => {
+export const saveToPC = async () => {
   let title = get_title()?.split("<")[0].trim().replace(/[^a-z A-Z]+/, '') + ".txt";
   const blob = get_printable_list_blob();
   if (blob) {

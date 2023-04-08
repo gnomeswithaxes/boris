@@ -26,7 +26,7 @@ export const Options = () => {
 
   return (
     <div>
-      <h2>Automatic Cheapest Prices Conversion in mtggoldfish.com</h2>
+      <h2>Automatic cheapest prices conversion</h2>
       <label className="switch">
         <input id="auto" type="checkbox"
           checked={checked}
@@ -39,7 +39,7 @@ export const Options = () => {
 
 ReactDOM.render(
   <React.StrictMode>
-    <h1>Opzioni Boris - <i>The Italian Goldfish</i></h1>
+    <h1>Opzioni Boris - <i>the Italian Goldfish</i></h1>
     <br />
     <Options />
   </React.StrictMode>,

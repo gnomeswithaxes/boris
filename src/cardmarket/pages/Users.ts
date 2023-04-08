@@ -5,7 +5,7 @@ export function showTrend() {
     const table = document.getElementById("UserOffersTable");
     if (table) {
         const legenda_div = document.createElement("div");
-        legenda_div.innerHTML = "<hr><p class='font-weight-bold'>Legenda: E = Stesso set / L = Prezzo più basso\ <br>Colori: <span style='color: green'>Prezzo minore</span> / <span style='color: red'>Prezzo maggiore</span> / <span style='color: darkviolet'>Foil [ <i>non supportato</i> ]</span> / <span class='color-primary'>Prezzo non trovato</span</p>"
+        legenda_div.innerHTML = "<hr><p class='font-weight-bold'>Legend: E = Exact set / L = Lowest Availble\ <br>Colors: <span style='color: green'>Lower price</span> / <span style='color: red'>Higher price</span> / <span style='color: darkviolet'>Foil [ <i>not supported</i> ]</span> / <span class='color-primary'>Price not found</span</p>"
         table.before(legenda_div)
 
         const rows = table.querySelectorAll('[id^=articleRow]')
