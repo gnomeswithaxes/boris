@@ -1,14 +1,14 @@
 {
   "manifest_version": 3,
 
-  "name": "Boris the Italian Goldfish (TS)",
-  "description": "Strumenti utili a chi vuole spendere tanti soldi in figurine",
-  "version": "2",
+  "name": "Boris - the Italian Goldfish",
+  "description": "A companion for shopping MTG cards ",
+  "version": "1.0",
 
   "options_page": "options.html",
 
   "action": {
-    "default_title": "Boris: the shoppone companion",
+    "default_title": "Boris - the Italian Goldfish",
     "default_icon": {
       "16": "/images/boris16.png",
       "32": "/images/boris32.png",
@@ -20,11 +20,11 @@
 
   "content_scripts": [
       {
-          "matches": ["https://www.mtggoldfish.com/*"],
+          "matches": ["https://*.mtggoldfish.com/*"],
           "js": ["js/vendor.js", "js/mtggoldfish/content_script.js"]
       },
       {
-          "matches": ["https://www.cardmarket.com/*"],
+          "matches": ["https://*.cardmarket.com/*"],
           "js": ["js/vendor.js", "js/cardmarket/content_script.js"]
       }
   ],
@@ -34,14 +34,7 @@
   },
 
   "permissions": [
-    "scripting",
-    "storage",
-    "tabs",
-    "activeTab"
-  ],
-
-  "host_permissions": [
-    "<all_urls>"
+    "storage"
   ],
 
   "icons": {
