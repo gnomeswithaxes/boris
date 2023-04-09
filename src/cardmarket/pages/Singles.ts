@@ -1,4 +1,5 @@
 import { sleep } from "../../common/utilities";
+import { parsePPU, parsePrice } from "../utilities";
 
 export function addLinkToSingles() {
     for (const user of document.getElementsByClassName("seller-name")) {
@@ -30,7 +31,7 @@ export async function addCheckboxes() {
         let prices: number[] = []
         for (let i = 0; i < nrows; i++) {
             const elem = rows[rows.length - nrows + i]
-            prices.push(parseFloat(elem.innerHTML.match(/\d+\,\d+/)![0].replace(",", ".")))
+            prices.push(parsePrice(elem.innerHTML))
             elem.innerHTML += "&nbsp;<input type='radio' name='reference' value=" + i + (i == reference ? " checked" : "") + ">"
         }
         colorPrices(prices[reference])
@@ -57,12 +58,12 @@ function colorPrices(reference_price: number) {
         const playset_elem = price_elem.parentElement!.parentElement!.getElementsByClassName("text-muted")
         let ppu = 0
         if (playset_elem.length > 0) {
-            ppu = parseFloat(playset_elem[0].innerHTML?.match(/\d+(?:\,\d+)?/g)![0].replace(",", "."))
+            ppu = parsePPU(playset_elem[0].innerHTML)
         }
 
         price_elem.classList.remove("color-primary")
         if (price_elem) {
-            if ((ppu > 0 && ppu <= reference_price) || parseFloat(price_elem.innerHTML.replace(" €", "").replace(",", ".")) <= reference_price) {
+            if ((ppu > 0 && ppu <= reference_price) || parsePrice(price_elem.innerHTML.replace(" €", "")) <= reference_price) {
                 price_elem.style.color = "green"
             } else {
                 price_elem.style.color = "red"
