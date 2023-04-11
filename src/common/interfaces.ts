@@ -11,3 +11,9 @@ export interface IScryfallCard {
     name: string,
     [key: string]: any
 }
+
+export interface ISavedUrl {
+    name: string,
+    mkm_id: string,
+    url: string
+}

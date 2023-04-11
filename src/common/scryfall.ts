@@ -1,46 +1,55 @@
 import { IScryfallCard } from "./interfaces";
 import { load_cards } from "../mtggoldfish/utilities";
 
+async function fetch_json(url: string, init?: RequestInit): Promise<any> {
+    return fetch(
+        url, init
+    ).then(async r => {
+        return await r.json();
+    });
+}
+
 export async function fetch_collection(ids: any[]): Promise<any> {
-    return fetch("https://api.scryfall.com/cards/collection", {
+    return fetch_json("https://api.scryfall.com/cards/collection", {
         method: "POST", headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifiers: ids })
-    }).then(async r => {
-        return await r.json();
     })
 }
 
 export async function fetch_single(name: string): Promise<any> {
-    return fetch(
+    return fetch_json(
         "https://api.scryfall.com/cards/named?include_multilingual=true&fuzzy=" + name
-    ).then(async r => {
-        return await r.json();
-    });
+    );
 }
 
 export async function get_exact(name: string, set: string) {
-    return fetch(
+    return fetch_json(
         "https://api.scryfall.com/cards/search?include_multilingual=true&q=" + name + " set:" + set
-    ).then(async r => {
-        return await r.json();
-    });
+    );
 }
 
 export async function get_cardmarket(id: string) {
-    return fetch(
+    return fetch_json(
         "https://api.scryfall.com/cards/cardmarket/" + id
-    ).then(async r => {
-        return await r.json();
-    });
+    );
+}
+
+export async function get_parent_set(set_uri: string) {
+    return fetch_json(
+        set_uri
+    );
+}
+
+export async function get_set_from_code(code: string) {
+    return await fetch_json("https://api.scryfall.com/sets/" + code);
 }
 
 export async function fetch_cheapest(name: string): Promise<any> {
-    return fetch(
+    return fetch_json(
         "https://api.scryfall.com/cards/search?order=eur&unique=prints&dir=asc&q=" + name
-    ).then(async r => {
-        let response = await r.json();
+    ).then(async response => {
         if (response.has_more) {
-            const more = await fetch(response.next_page).then(async r => { return await r.json() })
+            const more = await fetch_json(response.next_page);
             response.data.push(...more.data)
         }
         return response;
