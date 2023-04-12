@@ -19,7 +19,7 @@ const Popup = () => {
   }
 
   let list;
-  if (pinnedLists.length) {
+  if (pinnedLists && pinnedLists.length) {
     list =
       <ul>
         <base target="_blank" />
@@ -46,6 +46,7 @@ const Popup = () => {
 
 ReactDOM.render(
   <React.StrictMode>
+    <h1 style={{color: 'rgb(240, 173, 78)'}}>Boris - <i>the Italian Goldfish</i></h1>
     <Options />
     <hr />
     <Popup />

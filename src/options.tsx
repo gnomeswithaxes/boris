@@ -65,8 +65,7 @@ export const Options = () => {
 
 ReactDOM.render(
   <React.StrictMode>
-    <h1>Opzioni Boris - <i>the Italian Goldfish</i></h1>
-    <br />
+    <h1 style={{color: 'rgb(240, 173, 78)'}}>Opzioni Boris - <i>the Italian Goldfish</i></h1>
     <Options />
   </React.StrictMode>,
   document.getElementById("root")
