@@ -47,6 +47,7 @@ const Popup = () => {
 ReactDOM.render(
   <React.StrictMode>
     <Options />
+    <hr />
     <Popup />
   </React.StrictMode>,
   document.getElementById("root")

@@ -9,6 +9,10 @@ export function get_mkm_version(row: Element): string {
     return version != null ? version[1] : ""
 }
 
+export function get_mkm_url(row: Element): string {
+    return row.getElementsByClassName("name")[0]?.getElementsByTagName("a")[0]?.href.split("?")[0]
+}
+
 export function parsePrice(price: string): number {
     return parseFloat(price.replace(".", "").match(/\d+\,\d+/)![0].replace(",", "."))
 }
