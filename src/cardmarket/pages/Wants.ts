@@ -45,17 +45,18 @@ export function saveAllUrls() {
         let saved_urls = result.urls ?? []
 
         for (const row of document.getElementById("WantsListTable")?.getElementsByTagName("tbody")[0].getElementsByTagName("tr")!) {
-            const card_id = get_mkm_id(row);
             const card_url = get_mkm_url(row);
-
-            if (card_id && card_url) {
-                await get_cardmarket(card_id).then(async (card) => {
-                    if (card.name) {
-                        if (saved_urls.filter((u: ISavedUrl) => u.mkm_id == card_id).length == 0) {
-                            saved_urls.push({ name: card.name, mkm_id: card_id, url: card_url })
+            if (card_url && card_url.includes("/Products/Singles/")) {
+                const card_id = get_mkm_id(row);
+                if (card_id) {
+                    await get_cardmarket(card_id).then(async (card) => {
+                        if (card.name) {
+                            if (saved_urls.filter((u: ISavedUrl) => u.mkm_id == card_id).length == 0) {
+                                saved_urls.push({ name: card.name, mkm_id: card_id, url: card_url })
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
         }
         chrome.storage.local.set({ "urls": saved_urls })
