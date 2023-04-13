@@ -31,7 +31,7 @@ const Popup = () => {
         ))}
       </ul>;
   } else {
-    list = <i>Pin lists on <a href="https://www.mtggoldfish.com/">MTGGoldfish</a> and they will appear here</i>
+    list = <div><i>Pin lists on</i> MTGGoldfish.com <i>and they will appear here</i></div>
   }
 
   return (

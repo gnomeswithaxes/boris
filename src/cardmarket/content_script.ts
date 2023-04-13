@@ -3,7 +3,7 @@ import { addCheckboxes, addLinkToSingles } from "./pages/Singles";
 import { addDisclaimer, addLinkToCards } from "./pages/ShoppingWizard";
 import { addPrintListButton, saveAllUrls } from "./pages/Wants";
 
-if (window.location.pathname.includes("Users")) {
+if (window.location.pathname.includes("Magic/Users")) {
     showTrend();
 }
 
@@ -18,15 +18,19 @@ if (window.location.pathname.includes("Cards/")) {
 
 if (window.location.pathname.includes("ShoppingWizard/Results")) {
     addLinkToSingles();
-    chrome.storage.sync.get('shoppingWizard', (data) => {
-        if (data.shoppingWizard as boolean | undefined) {
-            addDisclaimer();
-            addLinkToCards();
-        }
-    })
+    if (window.location.pathname.includes("/Magic/Wants")) {
+        chrome.storage.sync.get('shoppingWizard', (data) => {
+            if (data.shoppingWizard as boolean | undefined) {
+                addDisclaimer();
+                addLinkToCards();
+            }
+        })
+    }
 }
 
 if (/\S+\/Wants\/\d+/.test(window.location.pathname)) {
     addPrintListButton();
-    saveAllUrls();
+    if (window.location.pathname.includes("/Magic/Wants")) {
+        saveAllUrls();
+    }
 }
