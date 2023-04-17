@@ -5,7 +5,7 @@ export function showTrend() {
     const table = document.getElementById("UserOffersTable");
     if (table) {
         const legenda_div = document.createElement("div");
-        legenda_div.innerHTML = "<hr><p class='font-weight-bold'>E = Exact set / L = Lowest Availble\ <br><span style='color: green'>Lower price</span> / <span style='color: red'>Higher price</span> / <span style='color: darkviolet'>Foil [ <i>not supported</i> ]</span> / <span class='color-primary'>Price not found</span</p>"
+        legenda_div.innerHTML = "<hr><p class='font-weight-bold'>E = Exact set / L = Lowest Availble <br><span style='color: green'>Lower price</span> / <span style='color: red'>Higher price</span> / <span style='color: darkviolet'>Foil [ <i>not supported</i> ]</span> / <span class='color-primary'>Price not found</span</p>"
         table.before(legenda_div)
 
         const rows = table.querySelectorAll('[id^=articleRow]')
@@ -33,8 +33,8 @@ export function showTrend() {
                     ppu = parsePPU(playset_elem[0].innerHTML)
                 }
 
-                let cheapest_color = "", exact_color = ""
-                let cheapest_price = 0, exact_price = 0
+                let cheapest_color = "", cheapest_price = 0
+                let exact_color = "", exact_price = 0
 
                 if (cheapest) {
                     cheapest_price = parseFloat(cheapest.prices?.eur ?? cheapest.prices?.eur_foil);
@@ -49,15 +49,15 @@ export function showTrend() {
                     }
                 }
 
-                let original_color = exact_color || cheapest_color
+                let original_color = cheapest_color && exact_color
                 price_elem.innerHTML = "<span style='color: " + original_color + "'>" + price_elem.innerHTML + "<span>"
 
                 if (!foil) {
-                    if (exact_price > 0 && cheapest.set != exact.set )
+                    if (exact_price > 0 && cheapest.id != exact.id)
                         price_elem.innerHTML += "<br><span style='color: " + exact_color + ";' >E </span><a style='color: black' href='" + exact.scryfall_uri + "'> " + exact_price.toLocaleString("it-IT", { minimumFractionDigits: 2 }) + " €</a>"
 
                     if (cheapest_price > 0)
-                        price_elem.innerHTML += "<br><span style='color: " + cheapest_color + ";'>" + (cheapest.set == exact.set ? "E=" : "") + "L </span><a style='color: black' href='" + cheapest.scryfall_uri + "'> " + cheapest_price.toLocaleString("it-IT", { minimumFractionDigits: 2 }) + " €</a>"
+                        price_elem.innerHTML += "<br><span style='color: " + cheapest_color + ";'>" + (cheapest.id == exact.id ? "E=" : "") + "L </span><a style='color: black' href='" + cheapest.scryfall_uri + "'> " + cheapest_price.toLocaleString("it-IT", { minimumFractionDigits: 2 }) + " €</a>"
                 }
             })
         }
