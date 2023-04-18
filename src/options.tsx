@@ -5,6 +5,7 @@ import { Checkbox } from "./components";
 export const Options = () => {
   const [autoChecked, setAutoChecked] = useState(false);
   const [versionChecked, setVersionChecked] = useState(false);
+  const [imagesChecked, setImagesChecked] = useState(false);
   const [wizardChecked, setWizardChecked] = useState(false);
 
   const handleAutoChange = () => {
@@ -17,6 +18,11 @@ export const Options = () => {
     chrome.storage.sync.set({ printVersion: !versionChecked });
   }
 
+  const handleImagesChange = () => {
+    setImagesChecked(!imagesChecked);
+    chrome.storage.sync.set({ images: !imagesChecked });
+  }
+
   const handleWizardChange = () => {
     setWizardChecked(!wizardChecked);
     chrome.storage.sync.set({ shoppingWizard: !wizardChecked });
@@ -24,7 +30,7 @@ export const Options = () => {
 
   useEffect(() => {
     let isMounted = true;
-    chrome.storage.sync.get(['auto', 'printVersion', 'shoppingWizard'], (data) => {
+    chrome.storage.sync.get(['auto', 'printVersion', 'images', 'shoppingWizard'], (data) => {
       if (isMounted) {
         if (data.auto as boolean | undefined)
           setAutoChecked(data.auto)
@@ -37,6 +43,12 @@ export const Options = () => {
         else {
           setVersionChecked(false);
           chrome.storage.sync.set({ printVersion: false });
+        };
+        if (data.images as boolean | undefined)
+          setImagesChecked(data.images)
+        else {
+          setImagesChecked(false);
+          chrome.storage.sync.set({ images: false });
         };
         if (data.shoppingWizard as boolean | undefined)
           setWizardChecked(data.shoppingWizard)
@@ -55,8 +67,10 @@ export const Options = () => {
       <h3>Automatic cheapest prices conversion</h3>
       <Checkbox checked={autoChecked} handleChange={handleAutoChange} />
       <h2>Cardmarket</h2>
-      <h3>When saving a Wants list, print card names as shown<br />(if false, english names are used instead)</h3>
+      <h3>When saving a Wants list, print card names as shown<br />(if false, english names are used)</h3>
       <Checkbox checked={versionChecked} handleChange={handleVersionChange} />
+      <h3><i>EXPERIMENTAL</i> - Show art instead of camera icon when available</h3>
+      <Checkbox checked={imagesChecked} handleChange={handleImagesChange} />
       <h3><i>EXPERIMENTAL</i> - Add links to ShoppingWizard results</h3>
       <Checkbox checked={wizardChecked} handleChange={handleWizardChange} />
     </div>

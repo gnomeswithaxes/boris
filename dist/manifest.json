@@ -25,7 +25,8 @@
       },
       {
           "matches": ["https://*.cardmarket.com/*"],
-          "js": ["js/vendor.js", "js/cardmarket/content_script.js"]
+          "js": ["js/vendor.js", "js/cardmarket/content_script.js"],
+          "css": ["css/boris_mkm.css"]
       }
   ],
 
