@@ -67,10 +67,10 @@ export const Options = () => {
       <h3>Automatic cheapest prices conversion</h3>
       <Checkbox checked={autoChecked} handleChange={handleAutoChange} />
       <h2>Cardmarket</h2>
-      <h3>When saving a Wants list, print card names as shown<br />(if false, english names are used)</h3>
-      <Checkbox checked={versionChecked} handleChange={handleVersionChange} />
       <h3>Show card art instead of camera icon</h3>
       <Checkbox checked={imagesChecked} handleChange={handleImagesChange} />
+      <h3>When saving a Wants list, print card names as shown<br />(if false, english names are used)</h3>
+      <Checkbox checked={versionChecked} handleChange={handleVersionChange} />
       <h3><i>EXPERIMENTAL</i> - Add links to ShoppingWizard results</h3>
       <Checkbox checked={wizardChecked} handleChange={handleWizardChange} />
     </div>
