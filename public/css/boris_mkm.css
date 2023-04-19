@@ -1,0 +1,14 @@
+.col-boris-image {
+    -webkit-box-flex: 0;
+    flex: 0 0 6%;
+    max-width: 6%;
+    justify-content: center;
+    align-items: center
+    /* border-left: 1px solid #dee2e6;
+    border-right: 1px solid #dee2e6; */
+}
+
+.col {
+    display: flex;
+    align-items: center !important;
+}

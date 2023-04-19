@@ -2,8 +2,8 @@
   "manifest_version": 3,
 
   "name": "Boris - the Italian Goldfish",
-  "description": "A companion for shopping MTG cards ",
-  "version": "1.0",
+  "description": "Your MTG shopping companion",
+  "version": "0.1",
 
   "options_page": "options.html",
 

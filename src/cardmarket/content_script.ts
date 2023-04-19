@@ -6,7 +6,7 @@ import { addImages } from "./pages/Product";
 
 if (window.location.pathname.includes("Magic/Users")) {
     showTrend();
-    addImages(1.6); // TODO execute when all trends have been added
+    addImages();
 }
 
 if (window.location.pathname.includes("Products/Singles/")) {
@@ -14,8 +14,8 @@ if (window.location.pathname.includes("Products/Singles/")) {
     addCheckboxes();
 }
 
-if (window.location.pathname.includes("Products")) {
-    addImages(1.4);
+if (/\S+\/Products\/Singles\/?[^\/]*\/?$/.test(window.location.pathname)) {
+    addImages();
 }
 
 if (window.location.pathname.includes("Cards/")) {
@@ -38,5 +38,6 @@ if (/\S+\/Wants\/\d+/.test(window.location.pathname)) {
     addPrintListButton();
     if (window.location.pathname.includes("/Magic/Wants")) {
         saveAllUrls();
+        // TODO add images to wants list?
     }
 }
