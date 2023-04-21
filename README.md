@@ -1,17 +1,21 @@
 # Boris - <i>The Italian Goldfish</i>
-Estensione Chrome per convertire i prezzi delle carte in [MTGGoldfish](https://www.mtggoldfish.com) da dollari a euro e aggiungere funzionalità a [cardmarket](https://www.cardmarket.com)
+Chrome extension to convert prices of Magic the Gathering cards on [MTGGoldfish.com](https://www.mtggoldfish.com) from dollars to euro and add functionality to [cardmarket.com](https://www.cardmarket.com)
 
-Per installare:
-  - scaricare e decomprimere file `boris.zip` dalla sezione [Releases](https://github.com/gnomeswithaxes/boris/releases/latest) di GitHub
-  - inserire in Chrome nella barra degli indirizzi `chrome://extensions/`
-  - abilitare la modalità sviluppatore (in alto a destra)
-  - cliccare su "carica estensione non pacchettizzata"
-  - selezionare la cartella `dist/` (contenente il file `manifest.json`) 
+For a complete list of feature, see the official page on [Chrome Web Store](https://chrome.google.com/webstore/detail/boris-the-italian-goldfis/dgkhcijbcbefeghmdjddbkbpfkkndhgg)
 
-Per installare da sorgente: 
-  - come sopra, ma la cartella `dist/` è già presente
+## Installation
+The easiest way is to add it directly from [Chrome Web Store](https://chrome.google.com/webstore/detail/boris-the-italian-goldfis/dgkhcijbcbefeghmdjddbkbpfkkndhgg)
 
-Per effettuare build manuale dell'estensione
-  - aprire la cartella `boris/`
-  - installare moduli: `> npm install`
-  - eseguire build: `> npm run build`
+You can also manually add it to Chrome:
+ - download the file `boris.zip` from the [Releases](https://github.com/gnomeswithaxes/boris/releases/latest) section of this repository. Inside you will find a folder called `dist`
+ - open Chrome and write `chrome://extensions/` in the address bar (or navigate to the extensions management page)
+ - enable "Developer Mode" in the upper right corner
+ - click on "Load Unpacked"
+ - select the folder called `dist` (make sure it contains the file `manifest.json`) 
+
+
+To manually build the extension: 
+ - download or clone the repository and open the folder `boris`
+ - install modules: `> npm install`
+ - build: `> npm run build` 
+ - to automatically build after every change: `> npm run watch`
