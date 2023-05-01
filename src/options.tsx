@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, version } from "react";
 import ReactDOM from "react-dom";
 import { Checkbox } from "./components";
 
 export const Options = () => {
-  const [autoChecked, setAutoChecked] = useState(false);
-  const [versionChecked, setVersionChecked] = useState(false);
-  const [imagesChecked, setImagesChecked] = useState(false);
-  const [wizardChecked, setWizardChecked] = useState(false);
+  const autoInitial = false;
+  const versionInitial = false;
+  const imagesInitial = true;
+  const wizardInitial = false
+  const [autoChecked, setAutoChecked] = useState(autoInitial);
+  const [versionChecked, setVersionChecked] = useState(versionInitial);
+  const [imagesChecked, setImagesChecked] = useState(imagesInitial);
+  const [wizardChecked, setWizardChecked] = useState(wizardInitial);
 
   const handleAutoChange = () => {
     setAutoChecked(!autoChecked);
@@ -35,26 +39,26 @@ export const Options = () => {
         if (data.auto as boolean | undefined)
           setAutoChecked(data.auto)
         else {
-          setAutoChecked(false);
-          chrome.storage.sync.set({ auto: false });
+          setAutoChecked(autoInitial);
+          chrome.storage.sync.set({ auto: autoInitial });
         };
         if (data.printVersion as boolean | undefined)
           setVersionChecked(data.printVersion)
         else {
-          setVersionChecked(false);
-          chrome.storage.sync.set({ printVersion: false });
+          setVersionChecked(versionInitial);
+          chrome.storage.sync.set({ printVersion: versionInitial });
         };
         if (data.images as boolean | undefined)
           setImagesChecked(data.images)
         else {
-          setImagesChecked(false);
-          chrome.storage.sync.set({ images: false });
+          setImagesChecked(imagesInitial);
+          chrome.storage.sync.set({ images: imagesInitial });
         };
         if (data.shoppingWizard as boolean | undefined)
           setWizardChecked(data.shoppingWizard)
         else {
-          setWizardChecked(false);
-          chrome.storage.sync.set({ shoppingWizard: false });
+          setWizardChecked(wizardInitial);
+          chrome.storage.sync.set({ shoppingWizard: wizardInitial });
         };
       }
     });
@@ -64,14 +68,14 @@ export const Options = () => {
   return (
     <div>
       <h2>MTGGoldfish</h2>
-      <h3>Automatic cheapest prices conversion</h3>
+      <h3>Show cheapest prices automatically</h3>
       <Checkbox checked={autoChecked} handleChange={handleAutoChange} />
       <h2>Cardmarket</h2>
       <h3>Show card art instead of camera icon</h3>
       <Checkbox checked={imagesChecked} handleChange={handleImagesChange} />
-      <h3>When saving a Wants list, print card names as shown<br />(if false, english names are used)</h3>
+      <h3>When downloading a Wants list, use card names as shown<br />(if false, english names are preferred)</h3>
       <Checkbox checked={versionChecked} handleChange={handleVersionChange} />
-      <h3><i>EXPERIMENTAL</i> - Add links to ShoppingWizard results</h3>
+      <h3><i>EXPERIMENTAL</i> - Add card links to ShoppingWizard results</h3>
       <Checkbox checked={wizardChecked} handleChange={handleWizardChange} />
     </div>
   );

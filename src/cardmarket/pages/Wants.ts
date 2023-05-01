@@ -13,23 +13,26 @@ export function addPrintListButton() {
         printBtn.style.color = "rgb(240, 173, 78)"
         printBtn.style.borderColor = "rgb(240, 173, 78)"
         printBtn.innerHTML = "<span>Save as...</span>"
-    
+
         printBtn.addEventListener("click", () => {
             chrome.storage.sync.get('printVersion', async (data) => {
                 const wants_title = document.getElementsByClassName("page-title-container")[0].getElementsByTagName("h1")[0].innerHTML
                 let list = ""
                 const printVersion = data.printVersion as boolean | undefined ?? false
-                if (printVersion) {
-                    for (const row of table.getElementsByClassName("name")!) {
-                        let name = row.getElementsByTagName("a")[0].innerHTML
-                        list += name + "\n"
-                    }
-                } else {
-                    for (const row of table.getElementsByTagName("tr")!) {
+                for (const row of table.getElementsByTagName("tr")!) {
+                    let amount = row.querySelector("td.amount")!.getAttribute("data-amount") ?? "1"
+                    let name = row.querySelector("td.name a")!.innerHTML
+                    if (printVersion) {
+                        list += amount + " " + name + "\n"
+                    } else {
                         const card_id = get_mkm_id(row);
                         if (card_id) {
                             await get_cardmarket(card_id).then(async (card) => {
-                                list += (card.name ?? "") + "\n"
+                                if (card.name) {
+                                    list +=  amount + " " + card.name + "\n"
+                                } else {
+                                    list += amount + " " + name + "\n"
+                                }
                             })
                         }
                     }
@@ -37,9 +40,9 @@ export function addPrintListButton() {
                 saveWithFilePicker(new Blob([list]), wants_title ? wants_title + ".txt" : "wants.txt");
             })
         })
-    
+
         btn.after(printBtn)
-    }    
+    }
 }
 
 export function saveAllUrls() {
