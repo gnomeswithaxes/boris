@@ -4,7 +4,7 @@ import { parsePPU, parsePrice } from "../utilities";
 export function addLinkToSingles() {
     for (const user of document.getElementsByClassName("seller-name")) {
         const user_link = user.getElementsByTagName("a")![0]
-        user_link.parentElement!.innerHTML += "&nbsp;-&nbsp;<a href='" + user_link.href + "/Offers/Singles/' target='_blank'>Singles</a>"
+        user_link.parentElement!.innerHTML += "&nbsp;-&nbsp;<a href='" + user_link.href + "/Offers/Singles' target='_blank'>Singles</a>"
     }
 }
 
@@ -53,9 +53,9 @@ export async function addCheckboxes() {
 
 function colorPrices(reference_price: number) {
     for (const elem of document.getElementsByClassName("price-container")) {
-        const price_elem = elem.getElementsByClassName("font-weight-bold")[0] as HTMLElement
+        const price_elem = elem.getElementsByClassName("fw-bold")[0] as HTMLElement
 
-        const playset_elem = price_elem.parentElement!.parentElement!.getElementsByClassName("text-muted")
+        const playset_elem = elem.getElementsByClassName("text-muted")
         let ppu = 0
         if (playset_elem.length > 0) {
             ppu = parsePPU(playset_elem[0].innerHTML)

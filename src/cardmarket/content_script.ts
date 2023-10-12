@@ -2,11 +2,22 @@ import { showTrend } from "./pages/Users";
 import { addCheckboxes, addLinkToSingles } from "./pages/Singles";
 import { addDisclaimer, addLinkToCards } from "./pages/ShoppingWizard";
 import { addPrintListButton, saveAllUrls } from "./pages/Wants";
-import { addImages } from "./pages/Product";
+import { addAutocompleteImages, addImages } from "./pages/Sitewide";
+
+chrome.storage.sync.get("images", async (result) => {
+    if (result.images as boolean
+        && !window.location.pathname.includes("ShoppingWizard/Results")
+        && !window.location.pathname.includes("Magic/Orders")
+        && !window.location.pathname.includes("Magic/ShoppingCart")
+        ) {
+            // TODO fix these locations
+        addImages()
+    }
+})
 
 if (window.location.pathname.includes("Magic/Users")) {
+    // addImages();
     showTrend();
-    addImages();
 }
 
 if (window.location.pathname.includes("Products/Singles/")) {
@@ -15,7 +26,7 @@ if (window.location.pathname.includes("Products/Singles/")) {
 }
 
 if (/\S+\/Products\/(Singles\/?[^\/]*\/?$|Search\/?)/.test(window.location.pathname)) {
-    addImages();
+    // addImages();
 }
 
 if (window.location.pathname.includes("Cards/")) {
@@ -38,6 +49,5 @@ if (/\S+\/Wants\/\d+/.test(window.location.pathname)) {
     addPrintListButton();
     if (window.location.pathname.includes("/Magic/Wants")) {
         saveAllUrls();
-        // TODO add images to wants list?
     }
 }

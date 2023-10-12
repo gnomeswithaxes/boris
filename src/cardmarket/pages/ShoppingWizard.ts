@@ -5,7 +5,7 @@ import { get_mkm_id, get_mkm_version } from "../utilities";
 export function addDisclaimer() {
     const section = document.getElementsByClassName("card-columns")[0]
     const disclaimer = document.createElement("h4");
-    disclaimer.innerHTML = "<i style='color: red;'>Due to some limitations, some links may not work or be wrong</i><hr>"
+    disclaimer.innerHTML = "<i style='color: red;'>Experimental feature, some links may be wrong</i><hr>"
     section.before(disclaimer)
 }
 
@@ -19,11 +19,11 @@ export function addLinkToCards() {
                 const card_version = get_mkm_version(row);
                 const card_elem = row.getElementsByClassName("card-name")[0];
                 const set_title = row.getElementsByClassName("expansion-symbol")[0]?.getAttribute("data-original-title")
-
                 if (card_id) {
                     await get_cardmarket(card_id).then(async (card) => {
                         const saved = saved_urls.filter((u: ISavedUrl) => u.mkm_id == card_id)
                         const url: string = saved.length > 0 ? saved[0].url : (await format_url(card, card_version, set_title || ""))
+
                         if (url) {
                             card_elem.innerHTML = "<a href='" + url + "' target='_blank'>" + card.name + "</a><br>/ <a href='" + card.purchase_uris.cardmarket + "' target='_blank'>All printings</a>"
                             if (saved_urls.filter((u: ISavedUrl) => u.mkm_id == card_id).length == 0) {

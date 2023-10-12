@@ -1,4 +1,4 @@
-import React, { useEffect, useState, version } from "react";
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { Checkbox } from "./components";
 
@@ -36,25 +36,25 @@ export const Options = () => {
     let isMounted = true;
     chrome.storage.sync.get(['auto', 'printVersion', 'images', 'shoppingWizard'], (data) => {
       if (isMounted) {
-        if (data.auto as boolean | undefined)
+        if (data.auto != undefined)
           setAutoChecked(data.auto)
         else {
           setAutoChecked(autoInitial);
           chrome.storage.sync.set({ auto: autoInitial });
         };
-        if (data.printVersion as boolean | undefined)
+        if (data.printVersion != undefined)
           setVersionChecked(data.printVersion)
         else {
           setVersionChecked(versionInitial);
           chrome.storage.sync.set({ printVersion: versionInitial });
         };
-        if (data.images as boolean | undefined)
+        if (data.images != undefined)
           setImagesChecked(data.images)
         else {
           setImagesChecked(imagesInitial);
           chrome.storage.sync.set({ images: imagesInitial });
         };
-        if (data.shoppingWizard as boolean | undefined)
+        if (data.shoppingWizard != undefined)
           setWizardChecked(data.shoppingWizard)
         else {
           setWizardChecked(wizardInitial);
@@ -75,15 +75,15 @@ export const Options = () => {
       <Checkbox checked={imagesChecked} handleChange={handleImagesChange} />
       <h3>When downloading a Wants list, use card names as shown<br />(if false, english names are preferred)</h3>
       <Checkbox checked={versionChecked} handleChange={handleVersionChange} />
-      <h3><i>EXPERIMENTAL</i> - Add card links to ShoppingWizard results</h3>
+      <h3><i>EXPERIMENTAL</i> - Add card links to ShoppingWizard results. This works by saving all urls when you visit a Wants list.</h3>
       <Checkbox checked={wizardChecked} handleChange={handleWizardChange} />
     </div>
   );
 };
-       
+
 ReactDOM.render(
   <React.StrictMode>
-    <h1 style={{color: 'rgb(240, 173, 78)'}}>Opzioni Boris - <i>the Italian Goldfish</i></h1>
+    <h1 style={{ color: 'rgb(240, 173, 78)' }}>Opzioni Boris - <i>the Italian Goldfish</i></h1>
     <Options />
   </React.StrictMode>,
   document.getElementById("root")

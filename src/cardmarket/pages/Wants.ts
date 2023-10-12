@@ -57,8 +57,11 @@ export function saveAllUrls() {
                     if (card_id) {
                         await get_cardmarket(card_id).then(async (card) => {
                             if (card.name) {
-                                if (saved_urls.filter((u: ISavedUrl) => u.mkm_id == card_id).length == 0) {
+                                const already_in = saved_urls.filter((u: ISavedUrl) => u.mkm_id == card_id)
+                                if (already_in.length == 0) {
                                     saved_urls.push({ name: card.name, mkm_id: card_id, url: card_url })
+                                } else {
+                                    already_in[0].url = card_url
                                 }
                             }
                         });

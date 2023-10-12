@@ -6,6 +6,8 @@ async function fetch_json(url: string, init?: RequestInit): Promise<any> {
         url, init
     ).then(async r => {
         return await r.json();
+    }).catch(()=>{
+
     });
 }
 
@@ -58,7 +60,7 @@ export async function fetch_cheapest(name: string): Promise<any> {
 
 export async function get_cheapest(name: string): Promise<IScryfallCard> {
     const prints_list = await fetch_cheapest(name);
-    return prints_list.data?.filter((r: IScryfallCard) => (r.prices?.eur || r.prices?.eur_foil) && r.border_color !== "gold")[0];
+    return prints_list.data?.filter((r: IScryfallCard) => (r.prices?.eur || r.prices?.eur_foil) && r.border_color !== "gold")[0] || "";
 }
 
 export async function fetch_cards() {
