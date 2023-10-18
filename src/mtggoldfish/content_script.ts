@@ -107,11 +107,13 @@ async function convertAllPrices() {
   if (table_rows?.length) {
     for (const tr of table_rows) {
       const row = parse_row(tr.querySelectorAll("td"));
-      let card: IScryfallCard | undefined = card_list.find(c => c.name.toLowerCase().includes(row.name.toLowerCase()));
-      if (card) {
-        await convertPrice(row, card);
-      } else {
-        row.price.innerHTML = "<span style='color: orange''>" + row.price.innerHTML + "</span>"
+      if (row) {
+        let card: IScryfallCard | undefined = card_list.find(c => c.name.toLowerCase().includes(row.name.toLowerCase()));
+        if (card) {
+          await convertPrice(row, card);
+        } else {
+          row.price.innerHTML = "<span style='color: orange''>" + row.price.innerHTML + "</span>"
+        }
       }
     }
   }
@@ -133,21 +135,23 @@ async function addCheapestPrices() {
       for (const e of document.querySelectorAll(".boris")) {
         const row_element = e.parentElement!
         const row = parse_row(row_element.querySelectorAll("td"));
-        let card: IScryfallCard | undefined = card_list.find(c => c.name?.toLowerCase().includes(row.name.toLowerCase()));
-        const td = document.createElement("td");
-        td.classList.add("text-right");
-        if (card) {
-          const eur_price = parseFloat((card.prices?.eur ?? card.prices?.eur_foil) ?? 0) * row.amount;
-          const card_uri = card.scryfall_uri ?? "javascript:void(0)";
-          total += eur_price;
-
-          td.innerHTML =
-            "<a style='color: darkviolet;' href=\"" + card_uri + "\">" +
-            "<span> €&nbsp;" + eur_price.toLocaleString("en-us", { minimumFractionDigits: 2 }) + "</span></a>"
-        } else {
-          td.innerHTML = "<span style='color: orange;'> €&nbsp;XX.XX </span>"
+        if (row) {
+          let card: IScryfallCard | undefined = card_list.find(c => c.name?.toLowerCase().includes(row.name.toLowerCase()));
+          const td = document.createElement("td");
+          td.classList.add("text-right");
+          if (card) {
+            const eur_price = parseFloat((card.prices?.eur ?? card.prices?.eur_foil) ?? 0) * row.amount;
+            const card_uri = card.scryfall_uri ?? "javascript:void(0)";
+            total += eur_price;
+  
+            td.innerHTML =
+              "<a style='color: darkviolet;' href=\"" + card_uri + "\">" +
+              "<span> €&nbsp;" + eur_price.toLocaleString("en-us", { minimumFractionDigits: 2 }) + "</span></a>"
+          } else {
+            td.innerHTML = "<span style='color: orange;'> €&nbsp;XX.XX </span>"
+          }
+          row_element.appendChild(td)
         }
-        row_element.appendChild(td)
       }
       setCheapestTotal(total);
     })
