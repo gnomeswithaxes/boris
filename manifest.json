@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Boris - the Italian Goldfish",
+  "description": "Your MTG shopping companion",
+  "version": "0.2.1",
+  "options_page": "src/options.html",
+  "action": {
+    "default_title": "Boris - the Italian Goldfish",
+    "default_popup": "src/popup.html",
+    "default_icon": {
+      "16": "images/boris16.png",
+      "32": "images/boris32.png",
+      "48": "images/boris48.png",
+      "128": "images/boris128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.mtggoldfish.com/*"],
+      "js": ["src/mtggoldfish/content_script.ts"]
+    },
+    {
+      "matches": ["https://*.cardmarket.com/*"],
+      "js": ["src/cardmarket/content_script.ts"],
+      "css": ["src/cardmarket/boris_mkm.css"]
+    }
+  ],
+  "background": {
+    "service_worker": "src/background.ts",
+    "type": "module"
+  },
+  "permissions": ["storage", "unlimitedStorage"],
+  "host_permissions": ["https://api.scryfall.com/*"],
+  "icons": {
+    "16": "images/boris16.png",
+    "32": "images/boris32.png",
+    "48": "images/boris48.png",
+    "128": "images/boris128.png"
+  }
+}

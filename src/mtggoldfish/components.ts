@@ -48,7 +48,7 @@ export function newDropdownItem(list: IPinnedList, deleteFunction: Function) {
     div.classList.add("dropdown-item");
 
     const link = document.createElement("a");
-    link.style.color = "black";
+    link.style.color = "inherit";
     link.style.paddingLeft = "1em";
     link.innerHTML = list.title;
     link.href = list.url;

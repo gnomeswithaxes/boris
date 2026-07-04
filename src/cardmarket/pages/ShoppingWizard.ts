@@ -1,91 +1,101 @@
-import { IScryfallCard, ISavedUrl } from "../../common/interfaces";
-import { get_cardmarket, fetch_single } from "../../common/scryfall";
-import { get_mkm_id, get_mkm_version } from "../utilities";
+import type { ISavedUrl } from '../../common/interfaces'
+import { get_cardmarket, fetch_single, SCRYFALL_CONCURRENCY } from '../../common/scryfall'
+import { getLocalSetting, setLocalSetting } from '../../common/storage'
+import { get_mkm_id, get_mkm_version } from '../utilities'
+import { title_attribute } from '../page_elements'
+import { mapPool } from '../../common/utilities'
+import type { IScryfallCard } from '../../common/interfaces'
 
-export function addDisclaimer() {
-    const section = document.getElementsByClassName("card-columns")[0]
-    const disclaimer = document.createElement("h4");
-    disclaimer.innerHTML = "<i style='color: red;'>Experimental feature, some links may be wrong</i><hr>"
-    section.before(disclaimer)
+export function addDisclaimer(): void {
+  const section = document.getElementsByClassName('card-columns')[0]
+  if (!section) return
+  const disclaimer = document.createElement('h4')
+  disclaimer.innerHTML = "<i style='color:red'>Experimental feature, some links may be wrong</i><hr>"
+  section.before(disclaimer)
 }
 
-export function addLinkToCards() {
-    chrome.storage.local.get(["urls"], async (result) => {
-        let saved_urls = result.urls ?? []
+export async function addLinkToCards(): Promise<void> {
+  const saved_urls: ISavedUrl[] = (await getLocalSetting('urls')) ?? []
+  const rows = [...document.getElementsByTagName('tbody')]
+    .flatMap(tbody => [...tbody.getElementsByTagName('tr')])
 
-        for (const table of document.getElementsByTagName("tbody")) {
-            for (const row of table.getElementsByTagName("tr")) {
-                const card_id = get_mkm_id(row);
-                const card_version = get_mkm_version(row);
-                const card_elem = row.getElementsByClassName("card-name")[0];
-                const set_title = row.getElementsByClassName("expansion-symbol")[0]?.getAttribute("data-original-title")
-                if (card_id) {
-                    await get_cardmarket(card_id).then(async (card) => {
-                        const saved = saved_urls.filter((u: ISavedUrl) => u.mkm_id == card_id)
-                        const url: string = saved.length > 0 ? saved[0].url : (await format_url(card, card_version, set_title || ""))
+  // Resolve rows through a bounded pool. Each task only reads saved_urls and
+  // returns any new entry; the array is mutated sequentially afterwards so
+  // concurrent lookups can't race on it.
+  const newEntries = await mapPool(rows, SCRYFALL_CONCURRENCY, async (row): Promise<ISavedUrl | null> => {
+    const cardId = get_mkm_id(row)
+    const cardVersion = get_mkm_version(row)
+    const cardElem = row.getElementsByClassName('card-name')[0]
+    const setTitle = row.getElementsByClassName('expansion-symbol')[0]?.getAttribute(title_attribute) ?? ''
 
-                        if (url) {
-                            card_elem.innerHTML = "<a href='" + url + "' target='_blank'>" + card.name + "</a><br>/ <a href='" + card.purchase_uris.cardmarket + "' target='_blank'>All printings</a>"
-                            if (saved_urls.filter((u: ISavedUrl) => u.mkm_id == card_id).length == 0) {
-                                saved_urls.push({ name: card.name, mkm_id: card_id, url: url })
-                            }
-                        } else {
-                            fetch_single(card_elem.innerHTML.replace(/\(V\.\d+\)/g, '')).then((card) => {
-                                card_elem.innerHTML = "<a href='" + card.purchase_uris.cardmarket + "' target='_blank'>" + card.name + "<br>(All)</a>"
-                            });
-                        }
-                    });
-                }
-            }
-        }
+    if (!cardId || !cardElem) return null
 
-        chrome.storage.local.set({ "urls": saved_urls })
-    });
-}
+    const card = await get_cardmarket(cardId)
+    if (!card) return null
 
-async function format_url(card: IScryfallCard, version: string, set_title: string): Promise<string> {
-    if (card.name) {
-        let name = card.name
-        let set = ""
-        if (version) {
-            set = set_title
-            name += " V" + version
-        } else {
-            const set_type = set_title?.split(":").pop()
-            if (!card.set_name.includes("Extras") && !card.set_name.includes("Promos")) {
-                set = card.set_name + ((set_type && (set_type.includes("Extras") || set_type.includes("Promos"))) ? set_type : "")
-            } else {
-                set = card.set_name
-            }
-        }
-        set = set.replace(" Set ", " ")
-        let path = (set + "/" + name).replace(/ \/\/ /g, "-").replace(/:/g, "").replace(/,/g, "").replace(/\s+/g, "-")
-        let url = "https://www.cardmarket.com/Magic/Products/Singles/" + path
+    const saved = saved_urls.find(u => u.mkm_id === cardId)
+    const url = saved?.url ?? await format_url(card, cardVersion, setTitle)
 
-        if (url.includes("\'")) {
-            const new_url = url.replace(/\'/g, "")
-            return await fetch(new_url).then(async r => {
-                if (r.ok && urls_are_equal(r.url, new_url)) {
-                    return new_url
-                } else {
-                    const new_url = url.replace(/\'/g, "-")
-                    return await fetch(new_url).then(r => {
-                        if (r.ok && urls_are_equal(r.url, new_url)) {
-                            return new_url
-                        } else {
-                            return ""
-                        }
-                    })
-                }
-            })
-        } else {
-            return url;
-        }
+    if (url) {
+      const allPrintings = card.purchase_uris?.cardmarket
+        ? `<br>/ <a href='${card.purchase_uris.cardmarket}' target='_blank'>All printings</a>`
+        : ''
+      cardElem.innerHTML = `<a href='${url}' target='_blank'>${card.name}</a>${allPrintings}`
+      return saved ? null : { name: card.name, mkm_id: cardId, url }
     }
 
-    return ""
+    const fallback = await fetch_single(cardElem.textContent?.replace(/\(V\.\d+\)/g, '') ?? '')
+    if (fallback?.purchase_uris?.cardmarket) {
+      cardElem.innerHTML = `<a href='${fallback.purchase_uris.cardmarket}' target='_blank'>${fallback.name}<br>(All)</a>`
+    }
+    return null
+  })
+
+  saved_urls.push(...newEntries.filter((e): e is ISavedUrl => e !== null))
+  await setLocalSetting('urls', saved_urls)
+}
+
+async function format_url(card: IScryfallCard, version: string, setTitle: string): Promise<string> {
+  if (!card.name) return ''
+
+  let name = card.name
+  let set: string
+
+  if (version) {
+    set = setTitle
+    name += ` V${version}`
+  } else {
+    const setType = setTitle.split(':').at(-1) ?? ''
+    if (!card.set_name.includes('Extras') && !card.set_name.includes('Promos')) {
+      set = card.set_name + (setType.includes('Extras') || setType.includes('Promos') ? setType : '')
+    } else {
+      set = card.set_name
+    }
+  }
+
+  set = set.replace(' Set ', ' ')
+  const path = (set + '/' + name)
+    .replace(/ \/\/ /g, '-')
+    .replace(/:/g, '')
+    .replace(/,/g, '')
+    .replace(/\s+/g, '-')
+  const url = `https://www.cardmarket.com/Magic/Products/Singles/${path}`
+
+  if (!url.includes("'")) return url
+
+  for (const replacement of ['', '-']) {
+    const candidate = url.replace(/'/g, replacement)
+    try {
+      const response = await fetch(candidate)
+      if (response.ok && urls_are_equal(response.url, candidate)) return candidate
+    } catch {
+      // try next replacement
+    }
+  }
+
+  return ''
 }
 
 function urls_are_equal(url1: string, url2: string): boolean {
-    return url1.split("/")!.slice(-1)[0] == url2.split("/")!.slice(-1)[0]
+  return url1.split('/').at(-1) === url2.split('/').at(-1)
 }

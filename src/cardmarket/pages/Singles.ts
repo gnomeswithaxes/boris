@@ -1,73 +1,73 @@
-import { sleep } from "../../common/utilities";
-import { parsePPU, parsePrice } from "../utilities";
+import { sleep } from '../../common/utilities'
+import { getSyncSetting, setSyncSetting } from '../../common/storage'
+import { parsePPU, parsePrice } from '../utilities'
 
-export function addLinkToSingles() {
-    for (const user of document.getElementsByClassName("seller-name")) {
-        const user_link = user.getElementsByTagName("a")![0]
-        user_link.parentElement!.innerHTML += "&nbsp;-&nbsp;<a href='" + user_link.href + "/Offers/Singles' target='_blank'>Singles</a>"
-    }
+export function addLinkToSingles(): void {
+  for (const user of document.getElementsByClassName('seller-name')) {
+    const link = user.getElementsByTagName('a')[0]
+    if (!link) continue
+    const singlesLink = document.createElement('a')
+    singlesLink.href = `${link.href}/Offers/Singles`
+    singlesLink.target = '_blank'
+    singlesLink.textContent = 'Singles'
+    link.parentElement?.append(' - ', singlesLink)
+  }
 }
 
-async function getReference(default_ref: number): Promise<number> {
-    return new Promise((resolve, reject) => {
-        chrome.storage.sync.get('reference', (data) => {
-            if (data.reference as number | undefined) {
-                return resolve(data.reference);
-            } else {
-                chrome.storage.sync.set({ reference: default_ref })
-                return resolve(default_ref);
-            };
-        });
+export async function addCheckboxes(): Promise<void> {
+  // Coerce to Number: the previous build stored `reference` as a string, so an
+  // existing user's synced value can arrive as e.g. "2" and break `i === reference`.
+  let reference = Number(await getSyncSetting('reference'))
+
+  const info = document.getElementsByClassName('info-list-container')[0]
+  if (!info) return
+
+  const rows = info.getElementsByTagName('dd')
+  const nrows = 4
+  const prices: number[] = []
+
+  for (let i = 0; i < nrows; i++) {
+    const elem = rows[rows.length - nrows + i]
+    if (!elem) continue
+    prices.push(parsePrice(elem.innerHTML))
+    const radio = document.createElement('input')
+    radio.type = 'radio'
+    radio.name = 'reference'
+    radio.value = String(i)
+    if (i === reference) radio.checked = true
+    elem.append(' ', radio)
+  }
+
+  colorPrices(prices[reference] ?? 0)
+
+  for (const radio of document.querySelectorAll<HTMLInputElement>('input[name="reference"]')) {
+    radio.addEventListener('change', async () => {
+      const val = parseInt(radio.value)
+      await setSyncSetting('reference', val)
+      reference = val
+      colorPrices(prices[val] ?? 0)
     })
+  }
+
+  document.getElementById('loadMoreButton')?.addEventListener('click', () =>
+    sleep(3000).then(() => colorPrices(prices[reference] ?? 0))
+  )
 }
 
-export async function addCheckboxes() {
-    let reference = await getReference(1);
+function colorPrices(referencePrice: number): void {
+  for (const elem of document.getElementsByClassName('price-container')) {
+    const priceElem = elem.getElementsByClassName('fw-bold')[0] as HTMLElement | undefined
+    if (!priceElem) continue
 
-    const info = document.getElementsByClassName("info-list-container")[0];
-    if (info) {
-        const rows = info.getElementsByTagName("dd")
-        const nrows = 4
-        let prices: number[] = []
-        for (let i = 0; i < nrows; i++) {
-            const elem = rows[rows.length - nrows + i]
-            prices.push(parsePrice(elem.innerHTML))
-            elem.innerHTML += "&nbsp;<input type='radio' name='reference' value=" + i + (i == reference ? " checked" : "") + ">"
-        }
-        colorPrices(prices[reference])
-
-        for (const radio of document.querySelectorAll('input[name="reference"]')) {
-            radio.addEventListener("change", function (this: any) {
-                chrome.storage.sync.set({ reference: this.value }).then(() => {
-                    reference = this.value
-                });
-                colorPrices(prices[this.value])
-            });
-        }
-
-        document.getElementById("loadMoreButton")?.addEventListener("click", () =>
-            sleep(3000).then(() => colorPrices(prices[reference]))
-        )
+    const playsetElems = elem.getElementsByClassName('text-muted')
+    let ppu = 0
+    if (playsetElems.length > 0) {
+      ppu = parsePPU(playsetElems[0].innerHTML)
     }
-}
 
-function colorPrices(reference_price: number) {
-    for (const elem of document.getElementsByClassName("price-container")) {
-        const price_elem = elem.getElementsByClassName("fw-bold")[0] as HTMLElement
-
-        const playset_elem = elem.getElementsByClassName("text-muted")
-        let ppu = 0
-        if (playset_elem.length > 0) {
-            ppu = parsePPU(playset_elem[0].innerHTML)
-        }
-
-        price_elem.classList.remove("color-primary")
-        if (price_elem) {
-            if ((ppu > 0 && ppu <= reference_price) || parsePrice(price_elem.innerHTML.replace(" €", "")) <= reference_price) {
-                price_elem.style.color = "green"
-            } else {
-                price_elem.style.color = "red"
-            }
-        }
-    }
+    priceElem.classList.remove('color-primary')
+    const price = parsePrice(priceElem.innerHTML.replace(' €', ''))
+    const isCheap = (ppu > 0 && ppu <= referencePrice) || price <= referencePrice
+    priceElem.style.color = isCheap ? 'green' : 'red'
+  }
 }

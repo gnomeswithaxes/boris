@@ -6,7 +6,7 @@ export const autocomplete_row_classes = ["col"]
 
 export const camera_class = "thumbnail-icon"
 export const camera_icon = "fonticon-camera"
-export const title_attribute = "data-original-title"
+export const title_attribute = "data-bs-original-title"
 export const header_selector = ".table-header>.row>.col-thumbnail"
 export const icon_selector = ".table-header>.row>.col-icon"
 export const table_row_selector = ".table-body>div"

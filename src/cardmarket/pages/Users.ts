@@ -1,76 +1,79 @@
-import { get_cheapest, get_cardmarket } from "../../common/scryfall";
-import { get_mkm_id, parsePPU, parsePrice, replaceCamera } from "../utilities";
+import { get_cheapest, get_cardmarket, SCRYFALL_CONCURRENCY } from '../../common/scryfall'
+import { get_mkm_id, parsePPU, parsePrice } from '../utilities'
+import { title_attribute } from '../page_elements'
+import { mapPool } from '../../common/utilities'
 
-export async function showTrend() {
-    const table = document.getElementById("UserOffersTable");
-    if (table) {
-        const legenda_div = document.createElement("div");
-        legenda_div.innerHTML = "<hr><p class='font-weight-bold'>E = Exact set / L = Lowest Availble <br><span style='color: green'>Lower price</span> / <span style='color: red'>Higher price</span> / <span style='color: darkviolet'>Foil [ <i>not supported</i> ]</span> / <span class='color-primary'>Price not found</span</p>"
-        table.before(legenda_div)
+export async function showTrend(): Promise<void> {
+  const table = document.getElementById('UserOffersTable')
+  if (!table) return
 
-        const rows = table.querySelectorAll('[id^=articleRow]')
-        for (const row of rows) {
-            const card_url = row.getElementsByClassName("col-seller")[0].getElementsByTagName("a")[0].href.split("?")[0].split("/")
+  const legend = document.createElement('div')
+  legend.innerHTML = `
+    <hr>
+    <p class="font-weight-bold">
+      E = Exact set / L = Lowest Available<br>
+      <span style="color:green">Lower price</span> /
+      <span style="color:red">Higher price</span> /
+      <span style="color:darkviolet">Foil [<i>not supported</i>]</span> /
+      <span class="color-primary">Price not found</span>
+    </p>
+  `
+  table.before(legend)
 
-            let card_name = card_url.pop()?.replace(/-V\d+/, '')
-            let card_id = get_mkm_id(row);
-
-            Promise.all([get_cheapest(card_name!), get_cardmarket(card_id)]).then(responses => {
-                let cheapest = responses[0]
-                let exact = responses[1]
-
-                const price_elem = row.getElementsByClassName("price-container")[0].getElementsByClassName("fw-bold")[0]
-                const original_price = parsePrice(price_elem.innerHTML.replace(" €", ""))
-
-                const playset_elem = price_elem.parentElement!.parentElement!.getElementsByClassName("text-muted")
-                let ppu = 0
-                if (playset_elem.length > 0) {
-                    ppu = parsePPU(playset_elem[0].innerHTML)
-                }
-
-                let cheapest_color = "", cheapest_price = 0
-                let exact_color = "", exact_price = 0
-
-                if (cheapest) {
-                    cheapest_price = parseFloat(cheapest.prices?.eur ?? cheapest.prices?.eur_foil);
-                    if (cheapest_price) {
-                        cheapest_color = color_from_price(original_price, cheapest_price, ppu);
-                    }
-                } else {
-                    cheapest = { name: "not_found", id: -1 }
-                }
-                if (exact) {
-                    exact_price = parseFloat(exact.prices?.eur ?? exact.prices?.eur_foil);
-                    if (exact_price) {
-                        exact_color = color_from_price(original_price, exact_price, ppu);
-                    }
-                } else {
-                    exact = { name: "not_found", id: -2 }
-                }
-
-                const foil = (row.querySelectorAll('[data-original-title="Foil"]').length > 0)
-
-                const main_color = foil ? "darkviolet" : cheapest_color && exact_color
-                price_elem.innerHTML = "<span style='color: " + main_color + "'>" + price_elem.innerHTML + "<span>"
-
-                if (!foil) {
-                    if (exact_price > 0 && cheapest.id != exact.id) {
-                        price_elem.innerHTML += "<br><span style='color: " + exact_color + ";' >E </span><a style='color: black' href='" + exact.scryfall_uri + "'> " + exact_price.toLocaleString("it-IT", { minimumFractionDigits: 2 }) + " €</a>"
-                    }
-                    if (cheapest_price > 0) {
-                        price_elem.innerHTML += "<br><span style='color: " + cheapest_color + ";'>" + (cheapest.id == exact.id ? "E=" : "") + "L </span><a style='color: black' href='" + cheapest.scryfall_uri + "'> " + cheapest_price.toLocaleString("it-IT", { minimumFractionDigits: 2 }) + " €</a>"
-                    }
-                }
-            })
-        }
-    }
+  const rows = table.querySelectorAll('[id^=articleRow]')
+  // Annotate rows through a bounded pool so lookups overlap instead of blocking
+  // each row on the previous row's two requests.
+  await mapPool([...rows], SCRYFALL_CONCURRENCY, annotateRow)
 }
 
+async function annotateRow(row: Element): Promise<void> {
+  const cardUrl = row.getElementsByClassName('col-seller')[0]
+    ?.getElementsByTagName('a')[0]?.href.split('?')[0].split('/') ?? []
 
-function color_from_price(old_price: number, new_price: number, ppu: number) {
-    if ((ppu > 0 && ppu > new_price) || old_price > new_price) {
-        return "red"
-    } else {
-        return "green"
+  const cardName = cardUrl.at(-1)?.replace(/-V\d+/, '') ?? ''
+  const cardId = get_mkm_id(row)
+
+  const [cheapest, exact] = await Promise.all([
+    get_cheapest(cardName),
+    get_cardmarket(cardId),
+  ])
+
+  const priceElem = row.getElementsByClassName('price-container')[0]
+    ?.getElementsByClassName('fw-bold')[0]
+  if (!priceElem) return
+
+  const originalPrice = parsePrice(priceElem.innerHTML.replace(' €', ''))
+
+  const playsetElems = priceElem.parentElement?.parentElement?.getElementsByClassName('text-muted')
+  let ppu = 0
+  if (playsetElems?.length) {
+    ppu = parsePPU(playsetElems[0].innerHTML)
+  }
+
+  const cheapestPrice = cheapest ? parseFloat(cheapest.prices?.eur ?? cheapest.prices?.eur_foil ?? '0') : 0
+  const exactPrice = exact ? parseFloat(exact.prices?.eur ?? exact.prices?.eur_foil ?? '0') : 0
+
+  const cheapestColor = cheapestPrice ? color_from_price(originalPrice, cheapestPrice, ppu) : ''
+  const exactColor = exactPrice ? color_from_price(originalPrice, exactPrice, ppu) : ''
+
+  const isFoil = row.querySelectorAll(`[${title_attribute}="Foil"]`).length > 0
+  // Prefer the exact-set comparison for the headline colour when it's known;
+  // only fall back to the cheapest-print comparison when there's no exact price.
+  const mainColor = isFoil ? 'darkviolet' : (exactColor || cheapestColor)
+
+  priceElem.innerHTML = `<span style="color:${mainColor}">${priceElem.innerHTML}</span>`
+
+  if (!isFoil) {
+    if (exactPrice > 0 && exact?.id !== cheapest?.id) {
+      priceElem.innerHTML += `<br><span style="color:${exactColor}">E </span><a style="color:black" href="${exact?.scryfall_uri ?? '#'}"> ${exactPrice.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</a>`
     }
+    if (cheapestPrice > 0) {
+      const label = exact?.id === cheapest?.id ? 'E=L' : 'L'
+      priceElem.innerHTML += `<br><span style="color:${cheapestColor}">${label} </span><a style="color:black" href="${cheapest?.scryfall_uri ?? '#'}"> ${cheapestPrice.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</a>`
+    }
+  }
+}
+
+function color_from_price(oldPrice: number, newPrice: number, ppu: number): string {
+  return (ppu > 0 && ppu > newPrice) || oldPrice > newPrice ? 'red' : 'green'
 }
