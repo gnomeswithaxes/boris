@@ -37,7 +37,15 @@ Vite + `vite-plugin-web-extension`. The plugin reads `manifest.json` at the proj
 | `src/cardmarket/content_script.ts` | `dist/src/cardmarket/content_script.js` | Injected on cardmarket.com |
 | `src/cardmarket/boris_mkm.css` | `dist/src/cardmarket/boris_mkm.css` | CSS injected on cardmarket.com |
 
-Static assets in `public/` (icons) are copied to `dist/` by Vite automatically.
+Static assets in `public/` are copied to `dist/` by Vite automatically. Icons live in `public/images/` and are referenced from `manifest.json` as `images/boris*.png`.
+
+Versioning: `package.json` is the single source of the extension version — `vite.config.ts` injects it into the built manifest, so `manifest.json` has no `version` field. Bump with `npm version patch|minor|major`.
+
+### Repo layout notes
+
+- `Boris on Safari/` and `Boris the Italian Goldfish (TS)/` are untracked local Xcode/Safari Web Extension wrappers, not part of the Vite build.
+- `boris.zip` (tracked) is the release bundle of `dist/` that the README points users to.
+- `.github/workflows/build.yml` is stale: it targets the `master` branch (the repo uses `main`) and Node 14/15, which is too old for Vite 5.
 
 ### React UI layer
 
@@ -45,12 +53,18 @@ The `Options` component (`src/OptionsPanel.tsx`) is shared between the popup and
 
 ### Cardmarket content script routing
 
-`src/cardmarket/content_script.ts` checks `window.location.pathname` and dispatches to page modules under `src/cardmarket/pages/`:
-- `Singles.ts` — single card listing pages (`Products/Singles/`)
-- `Wants.ts` — want list pages (`/Wants/\d+`)
-- `ShoppingWizard.ts` — shopping wizard results (experimental)
-- `Users.ts` — user profile / offer pages
-- `Sitewide.ts` — card image injection (runs on most pages)
+`src/cardmarket/content_script.ts` checks `window.location.pathname` with a series of independent `if`s (more than one can match the same page) and calls into page modules under `src/cardmarket/pages/`:
+
+| Path match | Calls |
+|---|---|
+| any page **except** `ShoppingWizard/Results`, `Magic/Orders`, `Magic/ShoppingCart` — only if `images` is on | `Sitewide.addImages()` |
+| `Magic/Users` | `Users.showTrend()` |
+| `Products/Singles/` | `Singles.addLinkToSingles()` + `addCheckboxes()` |
+| `Cards/` | `Singles.addLinkToSingles()` |
+| `ShoppingWizard/Results` | `addLinkToSingles()`; plus `ShoppingWizard.addDisclaimer()` / `addLinkToCards()` if under `/Magic/Wants` and `shoppingWizard` is on |
+| `/Wants/\d+` | `Wants.addPrintListButton()`; plus `saveAllUrls()` under `/Magic/Wants` |
+
+The Shopping Wizard feature is a two-step flow: `Wants.saveAllUrls()` caches card URLs into local storage (`urls`), and `ShoppingWizard.addLinkToCards()` reads them back on the results page.
 
 CSS class name constants for the Cardmarket DOM live in `src/cardmarket/page_elements.ts` — update these when Cardmarket's markup changes.
 
@@ -63,7 +77,7 @@ CSS class name constants for the Cardmarket DOM live in `src/cardmarket/page_ele
 
 ### Typed storage module
 
-All `chrome.storage` access goes through `src/common/storage.ts`. Never use raw `chrome.storage.sync.get/set` elsewhere — use the typed helpers instead:
+All `chrome.storage` access should go through `src/common/storage.ts`, which also applies the defaults below when a key is unset. Never use raw `chrome.storage.sync.get/set` elsewhere — raw reads return `undefined` for unset keys and silently ignore the defaults. New storage keys must be added to the `SyncStorage`/`LocalStorage` interfaces and `syncDefaults` in that file.
 
 ```ts
 getSyncSetting('auto')           // → Promise<boolean>

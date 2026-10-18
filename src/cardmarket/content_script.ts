@@ -1,22 +1,24 @@
-import { showTrend } from "./pages/Users";
+import { addUserToTitle, showTrend } from "./pages/Users";
 import { addCheckboxes, addLinkToSingles } from "./pages/Singles";
 import { addDisclaimer, addLinkToCards } from "./pages/ShoppingWizard";
 import { addPrintListButton, saveAllUrls } from "./pages/Wants";
-import { addAutocompleteImages, addImages } from "./pages/Sitewide";
+import { addImages } from "./pages/Sitewide";
+import { getSyncSetting } from "../common/storage";
 
-chrome.storage.sync.get("images", async (result) => {
-    if (result.images as boolean
+getSyncSetting("images").then((images) => {
+    if (images
         && !window.location.pathname.includes("ShoppingWizard/Results")
         && !window.location.pathname.includes("Magic/Orders")
         && !window.location.pathname.includes("Magic/ShoppingCart")
-        ) {
-            // TODO fix these locations
+    ) {
+        // TODO fix these locations
         addImages()
     }
 })
 
 if (window.location.pathname.includes("Magic/Users")) {
     // addImages();
+    addUserToTitle();
     showTrend();
 }
 
@@ -36,8 +38,8 @@ if (window.location.pathname.includes("Cards/")) {
 if (window.location.pathname.includes("ShoppingWizard/Results")) {
     addLinkToSingles();
     if (window.location.pathname.includes("/Magic/Wants")) {
-        chrome.storage.sync.get('shoppingWizard', (data) => {
-            if (data.shoppingWizard as boolean | undefined) {
+        getSyncSetting('shoppingWizard').then((shoppingWizard) => {
+            if (shoppingWizard) {
                 addDisclaimer();
                 addLinkToCards();
             }

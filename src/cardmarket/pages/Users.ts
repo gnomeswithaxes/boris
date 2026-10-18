@@ -3,6 +3,17 @@ import { get_mkm_id, parsePPU, parsePrice } from '../utilities'
 import { title_attribute } from '../page_elements'
 import { mapPool } from '../../common/utilities'
 
+export function addUserToTitle(): void {
+  const parts = window.location.pathname.split('/')
+  const user = parts[parts.indexOf('Users') + 1]
+  if (!user) return
+
+  const name = decodeURIComponent(user)
+  if (!document.title.startsWith(name)) {
+    document.title = `${name} - ${document.title}`
+  }
+}
+
 export async function showTrend(): Promise<void> {
   const table = document.getElementById('UserOffersTable')
   if (!table) return
