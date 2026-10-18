@@ -32,7 +32,6 @@ Vite + `vite-plugin-web-extension`. The plugin reads `manifest.json` at the proj
 |---|---|---|
 | `src/popup.html` + `src/popup.tsx` | `dist/src/popup.html` | React popup — pinned MTGGoldfish deck lists + settings |
 | `src/options.html` + `src/options.tsx` | `dist/src/options.html` | React options page — same settings, standalone view |
-| `src/background.ts` | `dist/src/background.js` | MV3 service worker (currently empty) |
 | `src/mtggoldfish/content_script.ts` | `dist/src/mtggoldfish/content_script.js` | Injected on mtggoldfish.com |
 | `src/cardmarket/content_script.ts` | `dist/src/cardmarket/content_script.js` | Injected on cardmarket.com |
 | `src/cardmarket/boris_mkm.css` | `dist/src/cardmarket/boris_mkm.css` | CSS injected on cardmarket.com |
@@ -43,7 +42,7 @@ Versioning: `package.json` is the single source of the extension version — `vi
 
 ### Repo layout notes
 
-- `Boris on Safari/` and `Boris the Italian Goldfish (TS)/` are untracked local Xcode/Safari Web Extension wrappers, not part of the Vite build.
+- `Boris on Safari/` and `Boris the Italian Goldfish (TS)/` are untracked local Xcode/Safari Web Extension wrappers, not part of the Vite build. They are outdated; see `SAFARI_AUDIT.md` before starting the Safari port.
 - `boris.zip` (tracked) is the release bundle of `dist/` that the README points users to.
 - `.github/workflows/build.yml` is stale: it targets the `master` branch (the repo uses `main`) and Node 14/15, which is too old for Vite 5.
 

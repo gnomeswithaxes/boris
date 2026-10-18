@@ -43,7 +43,7 @@ export function setCheapestTotal(total: number) {
     document.querySelector(".header-prices-boris")?.prepend(price_div);
 }
 
-export function newDropdownItem(list: IPinnedList, deleteFunction: Function) {
+export function newDropdownItem(list: IPinnedList, deleteFunction: (url: string) => void) {
     const div = document.createElement("div");
     div.classList.add("dropdown-item");
 

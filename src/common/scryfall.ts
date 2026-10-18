@@ -17,7 +17,7 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T | null> 
   }
 }
 
-export async function fetch_collection(ids: Array<{ name: string; set?: string }>): Promise<{ data: IScryfallCard[]; not_found: Array<{ name: string }> } | null> {
+async function fetch_collection(ids: Array<{ name: string; set?: string }>): Promise<{ data: IScryfallCard[]; not_found: Array<{ name: string }> } | null> {
   return fetchJson('https://api.scryfall.com/cards/collection', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -33,10 +33,6 @@ export async function fetch_single(name: string): Promise<IScryfallCard | null> 
 
 export async function get_cardmarket(id: string): Promise<IScryfallCard | null> {
   return fetchJson(`https://api.scryfall.com/cards/cardmarket/${id}`)
-}
-
-export async function get_set_from_code(code: string): Promise<unknown> {
-  return fetchJson(`https://api.scryfall.com/sets/${code}`)
 }
 
 async function fetch_cheapest_page(name: string): Promise<{ data: IScryfallCard[]; has_more: boolean; next_page: string } | null> {

@@ -27,7 +27,7 @@ if (window.location.pathname.includes("Products/Singles/")) {
     addCheckboxes();
 }
 
-if (/\S+\/Products\/(Singles\/?[^\/]*\/?$|Search\/?)/.test(window.location.pathname)) {
+if (/\S+\/Products\/(Singles\/?[^/]*\/?$|Search\/?)/.test(window.location.pathname)) {
     // addImages();
 }
 

@@ -19,21 +19,10 @@ export interface IScryfallCard {
     eur: string | null
     eur_foil: string | null
   }
-  image_uris?: {
-    small: string
-    [key: string]: string
-  }
-  card_faces?: Array<{
-    image_uris: {
-      small: string
-      [key: string]: string
-    }
-  }>
   purchase_uris?: {
     cardmarket: string
     [key: string]: string
   }
-  set_uri: string
 }
 
 export interface ISavedUrl {

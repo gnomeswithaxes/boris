@@ -20,9 +20,27 @@ export async function mapPool<T, R>(
   return results;
 }
 
-declare global { interface Window { showSaveFilePicker?: any; } }
+interface SaveFilePickerOptions {
+  suggestedName?: string
+  types?: { description?: string; accept: Record<string, string[]> }[]
+}
+declare global { interface Window { showSaveFilePicker?(options?: SaveFilePickerOptions): Promise<FileSystemFileHandle> } }
+
+function downloadBlob(blob: Blob, title: string) {
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = title
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
 export async function saveWithFilePicker(blob: Blob, title: string) {
-  const handler: any = await window.showSaveFilePicker({
+  if (!window.showSaveFilePicker) {
+    downloadBlob(blob, title)
+    return
+  }
+  const handler = await window.showSaveFilePicker({
     suggestedName: title ?? "",
     types: [{
       description: 'Text file',

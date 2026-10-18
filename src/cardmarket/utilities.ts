@@ -1,4 +1,3 @@
-import type { IScryfallCard } from '../common/interfaces'
 import { boris_img_class, camera_class, camera_icon, camera_icon_classlist, thumbnail_title_attribute, title_attribute } from './page_elements'
 
 function get_thumbnail_title(span: Element | undefined): string {
@@ -32,13 +31,6 @@ export function parsePrice(price: string): number {
 export function parsePPU(ppu: string): number {
   const match = ppu.match(/\d*\.?\d+(?:,\d+)?/g)
   return match ? parseFloat(match[0].replace('.', '').replace(',', '.')) : 0
-}
-
-export function get_card_src(card: IScryfallCard): string {
-  if (!card) return ''
-  if (card.image_uris) return card.image_uris.small
-  if (card.card_faces) return card.card_faces[0].image_uris.small
-  return ''
 }
 
 export function replaceCamera(span: Element, src: string): void {
