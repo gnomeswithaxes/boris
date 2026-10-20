@@ -1,5 +1,6 @@
 import type { ISavedUrl } from '../../common/interfaces'
-import { get_cardmarket, SCRYFALL_CONCURRENCY } from '../../common/scryfall'
+import { cardmarketCard } from '../../common/cards'
+import { SCRYFALL_CONCURRENCY } from '../../common/scryfall'
 import { mapPool, saveWithFilePicker } from '../../common/utilities'
 import { getSyncSetting, getLocalSetting, setLocalSetting } from '../../common/storage'
 import { get_mkm_id, get_mkm_url } from '../utilities'
@@ -34,7 +35,7 @@ export function addPrintListButton(): void {
 
       const cardId = get_mkm_id(row)
       if (!cardId) return ''
-      const card = await get_cardmarket(cardId)
+      const card = await cardmarketCard(cardId)
       return `${amount} ${card?.name ?? name}\n`
     })
 
@@ -61,7 +62,7 @@ export async function saveAllUrls(): Promise<void> {
     const cardId = get_mkm_id(row)
     if (!cardId) return null
 
-    const card = await get_cardmarket(cardId)
+    const card = await cardmarketCard(cardId)
     if (!card?.name) return null
 
     return { cardId, name: card.name, url: cardUrl }

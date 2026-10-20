@@ -1,4 +1,6 @@
-import { get_cheapest, get_cardmarket, SCRYFALL_CONCURRENCY } from '../../common/scryfall'
+import { cardmarketCard, cheapestPrintings, eurUnit } from '../../common/cards'
+import type { IScryfallCard } from '../../common/interfaces'
+import { fetch_single, SCRYFALL_CONCURRENCY } from '../../common/scryfall'
 import { get_mkm_id, parsePPU, parsePrice } from '../utilities'
 import { title_attribute } from '../page_elements'
 import { mapPool } from '../../common/utilities'
@@ -31,24 +33,27 @@ export async function showTrend(): Promise<void> {
   `
   table.before(legend)
 
-  const rows = table.querySelectorAll('[id^=articleRow], [id^=stockRow]')
-  // Annotate rows through a bounded pool so lookups overlap instead of blocking
-  // each row on the previous row's two requests.
-  await mapPool([...rows], SCRYFALL_CONCURRENCY, annotateRow)
+  const rows = [...table.querySelectorAll('[id^=articleRow], [id^=stockRow]')]
+  const exacts = await mapPool(rows, SCRYFALL_CONCURRENCY, row => {
+    const cardId = get_mkm_id(row)
+    return cardId ? cardmarketCard(cardId) : Promise.resolve(null)
+  })
+  const names = await mapPool(rows, SCRYFALL_CONCURRENCY, async (row, i) =>
+    exacts[i]?.name ?? (await fetch_single(nameFromUrl(row)))?.name ?? '')
+  const cheapest = await cheapestPrintings(names)
+
+  rows.forEach((row, i) => annotateRow(row, exacts[i], cheapest[i]))
 }
 
-async function annotateRow(row: Element): Promise<void> {
-  const cardUrl = row.getElementsByClassName('col-seller')[0]
-    ?.getElementsByTagName('a')[0]?.href.split('?')[0].split('/') ?? []
+// The product URL ends with a slug such as "Lightning-Bolt-V2"; only used when Scryfall
+// doesn't know the Cardmarket id.
+function nameFromUrl(row: Element): string {
+  const slug = row.getElementsByClassName('col-seller')[0]
+    ?.getElementsByTagName('a')[0]?.href.split('?')[0].split('/').at(-1) ?? ''
+  return slug.replace(/-V\d+$/, '').replace(/-/g, ' ')
+}
 
-  const cardName = cardUrl.at(-1)?.replace(/-V\d+/, '') ?? ''
-  const cardId = get_mkm_id(row)
-
-  const [cheapest, exact] = await Promise.all([
-    get_cheapest(cardName),
-    get_cardmarket(cardId),
-  ])
-
+function annotateRow(row: Element, exact: IScryfallCard | null, cheapest: IScryfallCard | null): void {
   const priceElem = row.getElementsByClassName('price-container')[0]
     ?.getElementsByClassName('fw-bold')[0]
   if (!priceElem) return
@@ -61,8 +66,8 @@ async function annotateRow(row: Element): Promise<void> {
     ppu = parsePPU(playsetElems[0].innerHTML)
   }
 
-  const cheapestPrice = cheapest ? parseFloat(cheapest.prices?.eur ?? cheapest.prices?.eur_foil ?? '0') : 0
-  const exactPrice = exact ? parseFloat(exact.prices?.eur ?? exact.prices?.eur_foil ?? '0') : 0
+  const cheapestPrice = eurUnit(cheapest) ?? 0
+  const exactPrice = eurUnit(exact) ?? 0
 
   const cheapestColor = cheapestPrice ? color_from_price(originalPrice, cheapestPrice, ppu) : ''
   const exactColor = exactPrice ? color_from_price(originalPrice, exactPrice, ppu) : ''

@@ -1,8 +1,9 @@
+import { cheapestPrintings } from '../common/cards'
 import { addPinnedList, canonicalDeckUrl, getPinnedLists, removePinnedList } from '../common/pinned'
 import { getSyncSetting } from '../common/storage'
 import { saveWithFilePicker } from '../common/utilities'
 import { DECK_TABLE, deckFormat, deckListText, deckScope, deckTitle, isPaperTable, parseDeck } from './deck'
-import { cheapestPrinting, resolvePrices } from './prices'
+import { resolvePrices } from './prices'
 import {
   type Action, ensureToolbar, flash, setCheapestButton, renderCheapest, renderPins, renderPrices, setTotal, toggleCurrency,
 } from './ui'
@@ -27,7 +28,7 @@ async function showCheapest(scope: HTMLElement, table: HTMLTableElement): Promis
   setCheapestButton(scope, 'loading')
 
   const rows = parseDeck(table)
-  const cards = await Promise.all(rows.map(row => cheapestPrinting(row.name)))
+  const cards = await cheapestPrintings(rows.map(row => row.name))
   if (!table.isConnected) return
   setTotal(scope, 'cheapest', renderCheapest(table, rows, cards))
   setCheapestButton(scope, 'done')

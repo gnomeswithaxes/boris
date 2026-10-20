@@ -1,6 +1,7 @@
 import type { IPinnedList, IScryfallCard } from '../common/interfaces'
 import type { DeckRow } from './deck'
-import { eurUnit, type PriceInfo } from './prices'
+import { eurUnit } from '../common/cards'
+import type { PriceInfo } from './prices'
 
 export type Action = 'toggle' | 'cheapest' | 'copy' | 'save' | 'pin' | 'unpin'
 

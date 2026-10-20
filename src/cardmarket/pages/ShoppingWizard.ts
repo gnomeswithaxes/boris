@@ -1,5 +1,6 @@
 import type { ISavedUrl } from '../../common/interfaces'
-import { get_cardmarket, fetch_single, SCRYFALL_CONCURRENCY } from '../../common/scryfall'
+import { cardmarketCard } from '../../common/cards'
+import { fetch_single, SCRYFALL_CONCURRENCY } from '../../common/scryfall'
 import { getLocalSetting, setLocalSetting } from '../../common/storage'
 import { get_mkm_id, get_mkm_version } from '../utilities'
 import { title_attribute } from '../page_elements'
@@ -30,7 +31,7 @@ export async function addLinkToCards(): Promise<void> {
 
     if (!cardId || !cardElem) return null
 
-    const card = await get_cardmarket(cardId)
+    const card = await cardmarketCard(cardId)
     if (!card) return null
 
     const saved = saved_urls.find(u => u.mkm_id === cardId)

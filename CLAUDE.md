@@ -69,10 +69,10 @@ CSS class name constants for the Cardmarket DOM live in `src/cardmarket/page_ele
 
 ### Scryfall integration
 
-`src/common/scryfall.ts` wraps the Scryfall API (no key required; declared in `host_permissions`). Key behaviours:
-- `fetch_cards()` batches deck cards into groups of 75 (API limit per `/cards/collection` call), fires them in parallel, then falls back to `get_cheapest()` for unrecognised cards.
-- `get_cheapest(name)` queries `/cards/search?order=eur&unique=prints` and returns the cheapest non-gold-border EUR printing.
-- All fetch calls return `null` on error rather than throwing, so callers must null-check.
+Both sites share the Scryfall layer; keep site-specific code out of it and diverge only when needed.
+
+- `src/common/scryfall.ts` — raw API (no key; declared in `host_permissions`). Every request goes through a rate gate: 2 req/s for `/cards/search`, `/cards/named`, `/cards/collection`, 10 req/s elsewhere (a 429 locks the client out for 30 s). `fetch_collection()` batches 75 identifiers per call; `get_cheapest_many(names)` gets the cheapest EUR printing of many cards with one `prefer:eur-low` search per 40 names; `find_by_name()` prefers a full-name match over a card-face match. Fetches return `null`/empty on error instead of throwing.
+- `src/common/cards.ts` — cached lookups used by both sites: `cardmarketCard(id)`, `cheapestPrintings(names)`, `eurUnit(card)`. Failed lookups are evicted from the cache so they get retried.
 
 ### Typed storage module
 
