@@ -16,7 +16,8 @@
   "content_scripts": [
     {
       "matches": ["https://*.mtggoldfish.com/*"],
-      "js": ["src/mtggoldfish/content_script.ts"]
+      "js": ["src/mtggoldfish/content_script.ts"],
+      "css": ["src/mtggoldfish/boris_goldfish.css"]
     },
     {
       "matches": ["https://*.cardmarket.com/*"],

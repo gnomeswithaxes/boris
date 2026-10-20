@@ -31,8 +31,11 @@ function downloadBlob(blob: Blob, title: string) {
   const link = document.createElement('a')
   link.href = url
   link.download = title
+  document.body.appendChild(link)
   link.click()
-  URL.revokeObjectURL(url)
+  link.remove()
+  // Revoking synchronously can cancel the download before the browser has read the blob (Safari).
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 export async function saveWithFilePicker(blob: Blob, title: string) {
@@ -40,14 +43,19 @@ export async function saveWithFilePicker(blob: Blob, title: string) {
     downloadBlob(blob, title)
     return
   }
-  const handler = await window.showSaveFilePicker({
-    suggestedName: title ?? "",
-    types: [{
-      description: 'Text file',
-      accept: { 'text/plain': ['.txt'] },
-    }],
-  });
-  const writable = await handler.createWritable();
-  await writable.write(blob);
-  writable.close();
+  try {
+    const handler = await window.showSaveFilePicker({
+      suggestedName: title ?? "",
+      types: [{
+        description: 'Text file',
+        accept: { 'text/plain': ['.txt'] },
+      }],
+    });
+    const writable = await handler.createWritable();
+    await writable.write(blob);
+    await writable.close();
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') return
+    throw error
+  }
 }

@@ -1,18 +1,14 @@
 export interface IPinnedList {
   url: string
   title: string
-}
-
-export interface IInternalCardModel {
-  name: string
-  set: string
-  amount: number
+  format?: string
 }
 
 export interface IScryfallCard {
   name: string
   id: string
   border_color: string
+  set: string
   set_name: string
   scryfall_uri: string
   prices: {

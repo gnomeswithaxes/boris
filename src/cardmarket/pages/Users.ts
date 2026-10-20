@@ -31,7 +31,7 @@ export async function showTrend(): Promise<void> {
   `
   table.before(legend)
 
-  const rows = table.querySelectorAll('[id^=articleRow]')
+  const rows = table.querySelectorAll('[id^=articleRow], [id^=stockRow]')
   // Annotate rows through a bounded pool so lookups overlap instead of blocking
   // each row on the previous row's two requests.
   await mapPool([...rows], SCRYFALL_CONCURRENCY, annotateRow)

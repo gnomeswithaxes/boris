@@ -1,13 +1,25 @@
 import type { IScryfallCard } from './interfaces'
-import { load_cards } from '../mtggoldfish/utilities'
-import { mapPool } from './utilities'
 
-// Max concurrent Scryfall requests. The API is public/keyless and asks clients to
-// stay near ~10 req/s, so per-row lookups run through a bounded pool rather than an
-// unbounded Promise.all. Tune here to trade speed against politeness.
+// Max concurrent Scryfall requests (~10 req/s allowed). Calls to the rate-limited endpoints
+// below are additionally queued at ~2 req/s regardless of this value, so raising it only
+// speeds up lookups such as /cards/cardmarket.
 export const SCRYFALL_CONCURRENCY = 8
 
+// /cards/search, /cards/named and /cards/collection allow only 2 requests per second, and a 429
+// locks the client out for 30 seconds, so calls to them are spaced out across the whole page.
+const RATE_LIMITED_ENDPOINT = /\/cards\/(search|named|collection)\b/
+const RATE_LIMITED_INTERVAL_MS = 550
+let nextRateLimitedSlot = 0
+
+function waitForRateLimitedSlot(): Promise<void> {
+  const now = Date.now()
+  const slot = Math.max(now, nextRateLimitedSlot)
+  nextRateLimitedSlot = slot + RATE_LIMITED_INTERVAL_MS
+  return new Promise(resolve => setTimeout(resolve, slot - now))
+}
+
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T | null> {
+  if (RATE_LIMITED_ENDPOINT.test(url)) await waitForRateLimitedSlot()
   try {
     const response = await fetch(url, init)
     if (!response.ok) return null
@@ -17,7 +29,12 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T | null> 
   }
 }
 
-async function fetch_collection(ids: Array<{ name: string; set?: string }>): Promise<{ data: IScryfallCard[]; not_found: Array<{ name: string }> } | null> {
+export interface CardIdentifier {
+  name: string
+  set?: string
+}
+
+async function fetch_collection_page(ids: CardIdentifier[]): Promise<{ data: IScryfallCard[] } | null> {
   return fetchJson('https://api.scryfall.com/cards/collection', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -35,50 +52,42 @@ export async function get_cardmarket(id: string): Promise<IScryfallCard | null> 
   return fetchJson(`https://api.scryfall.com/cards/cardmarket/${id}`)
 }
 
-async function fetch_cheapest_page(name: string): Promise<{ data: IScryfallCard[]; has_more: boolean; next_page: string } | null> {
+async function fetch_cheapest_page(query: string): Promise<{ data: IScryfallCard[]; has_more: boolean; next_page: string } | null> {
   return fetchJson(
-    `https://api.scryfall.com/cards/search?order=eur&unique=prints&dir=asc&q=${encodeURIComponent(name)}`
+    `https://api.scryfall.com/cards/search?order=eur&unique=prints&dir=asc&q=${encodeURIComponent(query)}`
   )
 }
 
-export async function get_cheapest(name: string): Promise<IScryfallCard | null> {
-  const response = await fetch_cheapest_page(name)
+async function cheapest_matching(query: string, accept: (card: IScryfallCard) => boolean): Promise<IScryfallCard | null> {
+  const isCandidate = (c: IScryfallCard) => Boolean(c.prices?.eur || c.prices?.eur_foil) && c.border_color !== 'gold' && accept(c)
+
+  const response = await fetch_cheapest_page(query)
   if (!response) return null
+  const found = response.data.find(isCandidate)
+  if (found || !response.has_more) return found ?? null
 
-  let cards = response.data
-  if (response.has_more) {
-    const more = await fetchJson<{ data: IScryfallCard[] }>(response.next_page)
-    if (more) cards = [...cards, ...more.data]
-  }
-
-  return cards.find(c => (c.prices?.eur || c.prices?.eur_foil) && c.border_color !== 'gold') ?? null
+  const more = await fetchJson<{ data: IScryfallCard[] }>(response.next_page)
+  return more?.data.find(isCandidate) ?? null
 }
 
-export async function fetch_cards(): Promise<IScryfallCard[]> {
-  const text_list = load_cards()
-  let card_list: IScryfallCard[] = []
+export async function get_cheapest(name: string): Promise<IScryfallCard | null> {
+  return cheapest_matching(name, () => true)
+}
 
-  const batches: Array<Array<{ name: string; set?: string }>> = []
-  const remaining = [...text_list]
-  while (remaining.length) {
-    batches.push(
-      remaining.splice(0, 75).map(c =>
-        c.set.length >= 3 && c.set.length <= 5 ? { name: c.name, set: c.set } : { name: c.name }
-      )
-    )
-  }
+export function matches_card_name(card: IScryfallCard, name: string): boolean {
+  const wanted = name.toLowerCase()
+  const full = card.name.toLowerCase()
+  return full === wanted || full.split(' // ').includes(wanted)
+}
 
-  const responses = await Promise.all(batches.map(fetch_collection))
+export async function get_cheapest_exact(name: string): Promise<IScryfallCard | null> {
+  return cheapest_matching(`!"${name.replaceAll('"', '')}"`, card => matches_card_name(card, name))
+}
 
-  const notFoundNames: string[] = []
-  for (const response of responses) {
-    if (!response) continue
-    card_list = [...card_list, ...response.data]
-    notFoundNames.push(...response.not_found.map(c => c.name))
-  }
-
-  const cheapest = await mapPool(notFoundNames, SCRYFALL_CONCURRENCY, name => get_cheapest(name))
-  card_list.push(...cheapest.filter((c): c is IScryfallCard => c !== null))
-
-  return card_list
+// The /cards/collection endpoint accepts at most 75 identifiers per request.
+export async function fetch_collection(ids: CardIdentifier[]): Promise<IScryfallCard[]> {
+  const batches: CardIdentifier[][] = []
+  for (let i = 0; i < ids.length; i += 75) batches.push(ids.slice(i, i + 75))
+  const responses = await Promise.all(batches.map(fetch_collection_page))
+  return responses.flatMap(response => response?.data ?? [])
 }

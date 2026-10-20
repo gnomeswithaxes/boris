@@ -1,20 +1,19 @@
 import { StrictMode, useState, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Options } from './OptionsPanel'
-import { getSyncSetting, setSyncSetting } from './common/storage'
+import { getPinnedLists, removePinnedList } from './common/pinned'
 import type { IPinnedList } from './common/interfaces'
 
 const Popup = () => {
   const [pinnedLists, setPinnedLists] = useState<IPinnedList[]>([])
 
   useEffect(() => {
-    getSyncSetting('pinned_lists').then(setPinnedLists)
+    getPinnedLists().then(setPinnedLists)
   }, [])
 
-  const handleRemove = (index: number) => {
-    const newList = pinnedLists.filter((_, i) => i !== index)
-    setPinnedLists(newList)
-    setSyncSetting('pinned_lists', newList)
+  const handleRemove = (url: string) => {
+    setPinnedLists(lists => lists.filter(list => list.url !== url))
+    removePinnedList(url)
   }
 
   return (
@@ -27,14 +26,13 @@ const Popup = () => {
         {pinnedLists.length ? (
           <ul>
             <base target="_blank" />
-            {pinnedLists.map((list, i) => (
-              <li key={i}>
-                <a
-                  style={{ color: 'black', textDecoration: 'none' }}
-                  href={list.url}
-                  dangerouslySetInnerHTML={{ __html: list.title }}
-                />
-                <button type="button" style={{ color: 'red' }} onClick={() => handleRemove(i)}>
+            {pinnedLists.map(list => (
+              <li key={list.url}>
+                <a style={{ color: 'black', textDecoration: 'none' }} href={list.url}>
+                  {list.format && <><strong>{list.format}</strong> | </>}
+                  {list.title}
+                </a>
+                <button type="button" style={{ color: 'red' }} onClick={() => handleRemove(list.url)}>
                   X
                 </button>
               </li>
