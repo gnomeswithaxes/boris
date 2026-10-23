@@ -25,9 +25,9 @@ export async function showTrend(): Promise<void> {
     <hr>
     <p class="font-weight-bold">
       E = Exact set / L = Lowest Available<br>
-      <span style="color:green">Lower price</span> /
-      <span style="color:red">Higher price</span> /
-      <span style="color:darkviolet">Foil [<i>not supported</i>]</span> /
+      <span class="boris-lower">Lower price</span> /
+      <span class="boris-higher">Higher price</span> /
+      <span class="boris-foil">Foil [<i>not supported</i>]</span> /
       <span class="color-primary">Price not found</span>
     </p>
   `
@@ -69,27 +69,27 @@ function annotateRow(row: Element, exact: IScryfallCard | null, cheapest: IScryf
   const cheapestPrice = eurUnit(cheapest) ?? 0
   const exactPrice = eurUnit(exact) ?? 0
 
-  const cheapestColor = cheapestPrice ? color_from_price(originalPrice, cheapestPrice, ppu) : ''
-  const exactColor = exactPrice ? color_from_price(originalPrice, exactPrice, ppu) : ''
+  const cheapestClass = cheapestPrice ? class_from_price(originalPrice, cheapestPrice, ppu) : ''
+  const exactClass = exactPrice ? class_from_price(originalPrice, exactPrice, ppu) : ''
 
   const isFoil = row.querySelectorAll(`[${title_attribute}="Foil"]`).length > 0
   // Prefer the exact-set comparison for the headline colour when it's known;
   // only fall back to the cheapest-print comparison when there's no exact price.
-  const mainColor = isFoil ? 'darkviolet' : (exactColor || cheapestColor)
+  const mainClass = isFoil ? 'boris-foil' : (exactClass || cheapestClass)
 
-  priceElem.innerHTML = `<span style="color:${mainColor}">${priceElem.innerHTML}</span>`
+  priceElem.innerHTML = `<span class="${mainClass}">${priceElem.innerHTML}</span>`
 
   if (!isFoil) {
     if (exactPrice > 0 && exact?.id !== cheapest?.id) {
-      priceElem.innerHTML += `<br><span style="color:${exactColor}">E </span><a style="color:black" href="${exact?.scryfall_uri ?? '#'}"> ${exactPrice.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</a>`
+      priceElem.innerHTML += `<br><span class="${exactClass}">E </span><a class="boris-price-link" href="${exact?.scryfall_uri ?? '#'}"> ${exactPrice.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</a>`
     }
     if (cheapestPrice > 0) {
       const label = exact?.id === cheapest?.id ? 'E=L' : 'L'
-      priceElem.innerHTML += `<br><span style="color:${cheapestColor}">${label} </span><a style="color:black" href="${cheapest?.scryfall_uri ?? '#'}"> ${cheapestPrice.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</a>`
+      priceElem.innerHTML += `<br><span class="${cheapestClass}">${label} </span><a class="boris-price-link" href="${cheapest?.scryfall_uri ?? '#'}"> ${cheapestPrice.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</a>`
     }
   }
 }
 
-function color_from_price(oldPrice: number, newPrice: number, ppu: number): string {
-  return (ppu > 0 && ppu > newPrice) || oldPrice > newPrice ? 'red' : 'green'
+function class_from_price(oldPrice: number, newPrice: number, ppu: number): string {
+  return (ppu > 0 && ppu > newPrice) || oldPrice > newPrice ? 'boris-higher' : 'boris-lower'
 }

@@ -9,3 +9,31 @@
     display: flex;
     align-items: center !important;
 }
+
+.price-container .fw-bold a.boris-price-link {
+    color: inherit;
+}
+
+.boris-lower {
+    color: #1a7f37;
+}
+
+.boris-higher {
+    color: #c62828;
+}
+
+.boris-foil {
+    color: #9400d3;
+}
+
+[data-bs-theme="dark"] .boris-lower {
+    color: #5cb85c;
+}
+
+[data-bs-theme="dark"] .boris-higher {
+    color: #f87171;
+}
+
+[data-bs-theme="dark"] .boris-foil {
+    color: #c084fc;
+}
