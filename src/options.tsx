@@ -1,13 +1,14 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { Header } from './components'
 import { Options } from './OptionsPanel'
 
 const root = createRoot(document.getElementById('root')!)
 root.render(
   <StrictMode>
-    <h1 style={{ color: 'rgb(240, 173, 78)' }}>
-      Opzioni Boris — <i>the Italian Goldfish</i>
-    </h1>
-    <Options />
+    <div className="options-page">
+      <Header />
+      <Options />
+    </div>
   </StrictMode>
 )

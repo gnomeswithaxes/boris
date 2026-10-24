@@ -1,5 +1,6 @@
 import { StrictMode, useState, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
+import { Header } from './components'
 import { Options } from './OptionsPanel'
 import { getFavorites, removeFavorite } from './common/favorites'
 import type { IFavoriteDeck } from './common/interfaces'
@@ -17,33 +18,27 @@ const Popup = () => {
   }
 
   return (
-    <div style={{ minWidth: '500px' }}>
-      <h1 style={{ color: 'rgb(240, 173, 78)' }}>Boris — <i>the Italian Goldfish</i></h1>
-      <Options />
-      <hr />
-      <h2>Favorite Decks:</h2>
-      <h3>
+    <div className="popup">
+      <Header />
+      <section>
+        <h2>Favorite Decks</h2>
         {favorites.length ? (
-          <ul>
-            <base target="_blank" />
+          <ul className="favorites">
             {favorites.map(deck => (
               <li key={deck.url}>
-                <a style={{ color: 'black', textDecoration: 'none' }} href={deck.url}>
-                  {deck.format && <><strong>{deck.format}</strong> | </>}
-                  {deck.title}
-                </a>
-                <button type="button" style={{ color: 'red' }} onClick={() => handleRemove(deck.url)}>
-                  X
+                <span className="favorite-format">{deck.format}</span>
+                <a href={deck.url} target="_blank" rel="noreferrer">{deck.title}</a>
+                <button type="button" aria-label={`Remove ${deck.title} from favorites`} onClick={() => handleRemove(deck.url)}>
+                  ×
                 </button>
               </li>
             ))}
           </ul>
         ) : (
-          <div>
-            <i>Add decks to your favorites on</i> MTGGoldfish.com <i>and they will appear here</i>
-          </div>
+          <p className="empty">Add decks to your favorites on MTGGoldfish and they will appear here.</p>
         )}
-      </h3>
+      </section>
+      <Options />
     </div>
   )
 }

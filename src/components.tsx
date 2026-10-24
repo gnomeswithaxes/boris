@@ -1,11 +1,24 @@
-type CheckboxProps = {
+import type { ReactNode } from 'react'
+
+type ToggleProps = {
+  label: string
+  note?: ReactNode
   checked: boolean
-  handleChange: () => void
+  onChange: () => void
 }
 
-export const Checkbox = ({ checked, handleChange }: CheckboxProps) => (
-  <label className="switch">
-    <input type="checkbox" checked={checked} onChange={handleChange} />
-    <span className="slider round" />
+export const Toggle = ({ label, note, checked, onChange }: ToggleProps) => (
+  <label className="setting">
+    <span className="setting-text">
+      {label}
+      {note && <small>{note}</small>}
+    </span>
+    <input type="checkbox" role="switch" className="switch" checked={checked} onChange={onChange} />
   </label>
+)
+
+export const Header = () => (
+  <header className="boris-header">
+    <b>Boris</b> <i>the Italian Goldfish</i>
+  </header>
 )

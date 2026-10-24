@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Checkbox } from './components'
+import { Toggle } from './components'
 import { getSyncSettings, setSyncSetting } from './common/storage'
 import type { SyncStorage } from './common/storage'
 import './options.css'
@@ -25,23 +25,23 @@ export const Options = () => {
   }
 
   return (
-    <div>
-      <h2>MTGGoldfish</h2>
-      <h3>Show cheapest prices automatically</h3>
-      <Checkbox checked={settings.auto} handleChange={() => toggle('auto')} />
-      <h2>Cardmarket</h2>
-      <h3>Show card art instead of camera icon</h3>
-      <Checkbox checked={settings.images} handleChange={() => toggle('images')} />
-      <h3>
-        When downloading a Wants list, use card names as shown
-        <br />(if false, English names are preferred)
-      </h3>
-      <Checkbox checked={settings.printVersion} handleChange={() => toggle('printVersion')} />
-      <h3>
-        <i>EXPERIMENTAL</i> — Add card links to ShoppingWizard results.
-        This works by saving all URLs when you visit a Wants list.
-      </h3>
-      <Checkbox checked={settings.shoppingWizard} handleChange={() => toggle('shoppingWizard')} />
-    </div>
+    <section>
+      <h3>MTGGoldfish</h3>
+      <Toggle label="Open decks on Cheapest prices" checked={settings.auto} onChange={() => toggle('auto')} />
+      <h3>Cardmarket</h3>
+      <Toggle label="Show card art instead of camera icon" checked={settings.images} onChange={() => toggle('images')} />
+      <Toggle
+        label="Export Wants lists with names as shown"
+        note="Off: English names are preferred"
+        checked={settings.printVersion}
+        onChange={() => toggle('printVersion')}
+      />
+      <Toggle
+        label="Card links in Shopping Wizard results"
+        note={<><span className="experimental">Experimental:</span> saves the URLs of the Wants lists you visit</>}
+        checked={settings.shoppingWizard}
+        onChange={() => toggle('shoppingWizard')}
+      />
+    </section>
   )
 }
