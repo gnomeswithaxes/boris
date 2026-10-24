@@ -10,6 +10,7 @@ getSyncSetting("images").then((images) => {
         && !window.location.pathname.includes("ShoppingWizard/Results")
         && !window.location.pathname.includes("Magic/Orders")
         && !window.location.pathname.includes("Magic/ShoppingCart")
+        && !window.location.pathname.includes("Magic/Data")
     ) {
         // TODO fix these locations
         addImages()

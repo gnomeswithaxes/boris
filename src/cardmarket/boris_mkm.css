@@ -37,3 +37,60 @@
 [data-bs-theme="dark"] .boris-foil {
     color: #c084fc;
 }
+
+.boris-reference {
+    display: flex;
+    align-items: center;
+}
+
+.boris-reference-price {
+    min-width: 4.5em;
+    font-variant-numeric: tabular-nums;
+}
+
+.boris-reference input {
+    margin: 0 0 0 .5em;
+}
+
+.seller-name:has(.boris-seller),
+.boris-seller {
+    min-width: 0;
+}
+
+.boris-seller {
+    white-space: nowrap;
+}
+
+.boris-seller > a:not(.boris-singles-link) {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.boris-singles-link {
+    display: inline-flex;
+    flex-shrink: 0;
+}
+
+.boris-singles-divider {
+    flex-shrink: 0;
+    width: 1px;
+    height: 14px;
+    margin: 0 .4em;
+    background: currentColor;
+    opacity: .35;
+}
+
+.boris-singles-divider:first-child {
+    margin-left: .15em;
+}
+
+.boris-singles-link svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}

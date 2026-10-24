@@ -36,6 +36,7 @@ Vite + `vite-plugin-web-extension`. The plugin reads `manifest.json` at the proj
 | `src/cardmarket/content_script.ts` | `dist/src/cardmarket/content_script.js` | Injected on cardmarket.com |
 | `src/mtggoldfish/boris_goldfish.css` | `dist/src/mtggoldfish/boris_goldfish.css` | CSS injected on mtggoldfish.com |
 | `src/cardmarket/boris_mkm.css` | `dist/src/cardmarket/boris_mkm.css` | CSS injected on cardmarket.com |
+| `src/common/boris_tooltip.css` | `dist/src/common/boris_tooltip.css` | Shared tooltip injected on both sites: set `data-boris-tip="text"` on an element (`data-boris-tip-align="start"` to anchor it left) |
 
 Static assets in `public/` are copied to `dist/` by Vite automatically. Icons live in `public/images/` and are referenced from `manifest.json` as `images/boris*.png`.
 
@@ -83,5 +84,5 @@ setLocalSetting('urls', list)    // → Promise<void>
 | `printVersion` | sync | boolean | false — use localised names in want-list export |
 | `shoppingWizard` | sync | boolean | false — experimental Shopping Wizard links |
 | `favorite_decks` | sync | `IFavoriteDeck[]` | [] — favorite MTGGoldfish deck URLs |
-| `reference` | sync | number | 1 — reference price index on Singles pages |
+| `reference` | sync | number | -1 — reference price on Singles pages (-1 = "From", no recolouring; 0–3 = trend and 30/7/1-day averages) |
 | `urls` | local | `ISavedUrl[]` | — URL cache for Shopping Wizard feature |

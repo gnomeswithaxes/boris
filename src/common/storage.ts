@@ -19,7 +19,7 @@ const syncDefaults: SyncStorage = {
   images: true,
   shoppingWizard: false,
   favorite_decks: [],
-  reference: 1,
+  reference: -1,
 }
 
 export function getSyncSetting<K extends keyof SyncStorage>(key: K): Promise<SyncStorage[K]> {

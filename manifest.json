@@ -17,12 +17,12 @@
     {
       "matches": ["https://*.mtggoldfish.com/*"],
       "js": ["src/mtggoldfish/content_script.ts"],
-      "css": ["src/mtggoldfish/boris_goldfish.css"]
+      "css": ["src/common/boris_tooltip.css", "src/mtggoldfish/boris_goldfish.css"]
     },
     {
       "matches": ["https://*.cardmarket.com/*"],
       "js": ["src/cardmarket/content_script.ts"],
-      "css": ["src/cardmarket/boris_mkm.css"]
+      "css": ["src/common/boris_tooltip.css", "src/cardmarket/boris_mkm.css"]
     }
   ],
   "permissions": ["storage", "unlimitedStorage"],

@@ -7,8 +7,6 @@
     --boris-border: #4f4f4f;
     --boris-hover: rgba(0, 0, 0, 0.06);
     --boris-muted: #6c757d;
-    --boris-tip-bg: #212529;
-    --boris-tip-text: #fff;
 }
 
 [data-bs-theme="dark"] .boris-scope {
@@ -18,8 +16,6 @@
     --boris-border: #8a8a8a;
     --boris-hover: rgba(255, 255, 255, 0.08);
     --boris-muted: #a0a0a0;
-    --boris-tip-bg: #e6e6e6;
-    --boris-tip-text: #1e1e1e;
 }
 
 .boris-nav {
@@ -154,31 +150,4 @@
 .boris-scope:not(.boris-show-cheapest) .boris-cheap,
 .boris-show-cheapest .boris-price-cell:has(.boris-cheap) .boris-exact {
     display: none;
-}
-
-.boris-eur[data-boris-tip] {
-    position: relative;
-}
-
-.boris-eur[data-boris-tip]::after {
-    content: attr(data-boris-tip);
-    position: absolute;
-    right: 0;
-    bottom: 100%;
-    z-index: 10;
-    margin-bottom: 4px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: var(--boris-tip-bg);
-    color: var(--boris-tip-text);
-    font-size: 0.8rem;
-    white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.1s;
-}
-
-.boris-eur[data-boris-tip]:hover::after {
-    opacity: 1;
-    transition-delay: 0.15s;
 }
