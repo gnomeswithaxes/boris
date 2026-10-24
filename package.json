@@ -1,6 +1,6 @@
 {
   "name": "boris",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Boris - The Italian Goldfish, MTG shopping companion",
   "type": "module",
   "scripts": {
