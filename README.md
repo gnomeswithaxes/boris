@@ -1,6 +1,8 @@
 # Boris - <i>The Italian Goldfish</i>
 Chrome extension to convert prices of Magic the Gathering cards on [MTGGoldfish.com](https://www.mtggoldfish.com) from dollars to euro and add functionality to [cardmarket.com](https://www.cardmarket.com)
 
+Boris is not affiliated with or endorsed by Wizards of the Coast, Cardmarket, MTGGoldfish or Scryfall. Card data and prices come from the [Scryfall API](https://scryfall.com/docs/api).
+
 For a complete list of feature, see the official page on [Chrome Web Store](https://chrome.google.com/webstore/detail/boris-the-italian-goldfis/dgkhcijbcbefeghmdjddbkbpfkkndhgg)
 
 ## Installation
@@ -18,4 +20,4 @@ To manually build the extension:
  - download or clone the repository and open the folder `boris`
  - install modules: `> npm install`
  - build: `> npm run build` 
- - to automatically build after every change: `> npm run watch`
+ - to automatically build after every change: `> npm run dev`

@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "Boris - the Italian Goldfish",
   "description": "Your MTG shopping companion",
+  "minimum_chrome_version": "111",
   "options_page": "src/options.html",
   "action": {
     "default_title": "Boris - the Italian Goldfish",

@@ -31,7 +31,9 @@ async function fetchJson({ url, body }: ScryfallRequest): Promise<unknown> {
   try {
     const response = await fetch(
       url,
-      body === undefined ? undefined : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body },
+      body === undefined
+        ? { headers: { Accept: 'application/json' } }
+        : { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body },
     )
     if (response.status === 429) {
       slowGate.pause(LOCKOUT_MS)
