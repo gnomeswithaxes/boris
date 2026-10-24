@@ -1,3 +1,4 @@
+import { logError } from '../../common/utilities'
 import { getSyncSetting, setSyncSetting } from '../../common/storage'
 import { parsePPU, parsePrice, priceClass } from '../utilities'
 import { divider, iconLink, storefrontIcon } from '../icons'
@@ -78,11 +79,10 @@ export async function addCheckboxes(): Promise<void> {
   colorPrices(prices[reference])
 
   for (const radio of document.querySelectorAll<HTMLInputElement>('input[name="reference"]')) {
-    radio.addEventListener('change', async () => {
-      const val = parseInt(radio.value)
-      await setSyncSetting('reference', val)
-      reference = val
-      colorPrices(prices[val])
+    radio.addEventListener('change', () => {
+      reference = parseInt(radio.value)
+      colorPrices(prices[reference])
+      setSyncSetting('reference', reference).catch(logError)
     })
   }
 

@@ -4,17 +4,21 @@ import { Header } from './components'
 import { Options } from './OptionsPanel'
 import { getFavorites, removeFavorite } from './common/favorites'
 import type { IFavoriteDeck } from './common/interfaces'
+import { logError } from './common/utilities'
 
 const Popup = () => {
   const [favorites, setFavorites] = useState<IFavoriteDeck[]>([])
 
   useEffect(() => {
-    getFavorites().then(setFavorites)
+    getFavorites().then(setFavorites, logError)
   }, [])
 
   const handleRemove = (url: string) => {
     setFavorites(decks => decks.filter(deck => deck.url !== url))
-    removeFavorite(url)
+    removeFavorite(url).catch(error => {
+      logError(error)
+      getFavorites().then(setFavorites, logError)
+    })
   }
 
   return (

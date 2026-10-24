@@ -27,4 +27,4 @@ Guidance for `src/mtggoldfish/`. Shared Scryfall, storage and build notes live i
 
 ## Favorite decks
 
-Favorites are shared with the popup through `src/common/favorites.ts` (not this folder). URLs are canonicalised to `origin + pathname`; up to 0.2.2 the format was stored as HTML in the title and is migrated on read by `normalize()`. The toolbar refreshes on `chrome.storage.onChanged` for `favorite_decks` and on `turbo:load`.
+Favorites are shared with the popup through `src/common/favorites.ts` (not this folder). URLs are canonicalised to `origin + pathname`; up to 0.2.2 the format was stored as HTML in the title and is migrated on read by `normalize()`. The toolbar refreshes on `chrome.storage.onChanged` for `favorite_decks` and on `turbo:load`. The list is one `storage.sync` key, capped at 8 KB (≈80 decks): past that `saveFavorites` throws `FavoritesFullError` and the button flashes "Favorites full".

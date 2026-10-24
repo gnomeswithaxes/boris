@@ -31,11 +31,19 @@ export async function getFavorites(): Promise<IFavoriteDeck[]> {
   return decks.filter((deck, i) => decks.findIndex(d => d.url === deck.url) === i)
 }
 
+// storage.sync caps one key at 8 KB, roughly 80 favorites.
+export class FavoritesFullError extends Error {}
+
 async function saveFavorites(decks: IFavoriteDeck[]): Promise<void> {
-  await setSyncSetting(
-    'favorite_decks',
-    [...decks].sort((a, b) => sortKey(a).localeCompare(sortKey(b))),
-  )
+  try {
+    await setSyncSetting(
+      'favorite_decks',
+      [...decks].sort((a, b) => sortKey(a).localeCompare(sortKey(b))),
+    )
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('QUOTA_BYTES')) throw new FavoritesFullError(error.message)
+    throw error
+  }
 }
 
 export async function addFavorite(deck: IFavoriteDeck): Promise<void> {

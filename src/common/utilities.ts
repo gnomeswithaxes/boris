@@ -1,5 +1,10 @@
 export const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
 
+export function logError(error: unknown): void {
+  // eslint-disable-next-line no-console
+  console.error('[Boris]', error)
+}
+
 // Runs `fn` over `items` with at most `limit` calls in flight at once, preserving
 // input order in the result. Used to parallelise per-row Scryfall lookups without
 // firing an unbounded burst of requests at the public API.

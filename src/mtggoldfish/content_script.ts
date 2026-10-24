@@ -1,7 +1,7 @@
 import { cheapestPrintings } from '../common/cards'
-import { addFavorite, canonicalDeckUrl, getFavorites, removeFavorite } from '../common/favorites'
+import { addFavorite, canonicalDeckUrl, FavoritesFullError, getFavorites, removeFavorite } from '../common/favorites'
 import { getSyncSetting } from '../common/storage'
-import { saveWithFilePicker } from '../common/utilities'
+import { logError, saveWithFilePicker } from '../common/utilities'
 import { DECK_TABLE, deckFormat, deckListText, deckScope, deckTitle, isPaperTable, parseDeck } from './deck'
 import { resolvePrices } from './prices'
 import {
@@ -67,7 +67,7 @@ function scan(): void {
     return
   }
   document.querySelectorAll<HTMLTableElement>(DECK_TABLE).forEach(table => {
-    if (!table.dataset.borisProcessed && isPaperTable(table)) void processTable(table)
+    if (!table.dataset.borisProcessed && isPaperTable(table)) processTable(table).catch(logError)
   })
 }
 
@@ -95,6 +95,11 @@ function saveList(scope: HTMLElement, link: HTMLElement): void {
   )
 }
 
+function favoriteFailed(link: HTMLElement, error: unknown): void {
+  logError(error)
+  flash(link, error instanceof FavoritesFullError ? 'Favorites full' : 'Not saved')
+}
+
 function onClick(event: MouseEvent): void {
   const link = (event.target as Element | null)?.closest<HTMLElement>('[data-boris-action]')
   if (!link || !extensionAlive()) return
@@ -111,7 +116,7 @@ function onClick(event: MouseEvent): void {
       break
     case 'cheapest': {
       const table = paperTable(scope)
-      if (table) void loadCheapest(scope, table)
+      if (table) loadCheapest(scope, table).catch(logError)
       break
     }
     case 'copy':
@@ -121,10 +126,12 @@ function onClick(event: MouseEvent): void {
       saveList(scope, link)
       break
     case 'favorite':
-      void addFavorite({ url: currentUrl(), title: deckTitle(scope) ?? currentUrl(), format: deckFormat(scope) })
+      addFavorite({ url: currentUrl(), title: deckTitle(scope) ?? currentUrl(), format: deckFormat(scope) }).catch(
+        error => favoriteFailed(link, error),
+      )
       break
     case 'unfavorite':
-      void removeFavorite(link.dataset.url ?? currentUrl())
+      removeFavorite(link.dataset.url ?? currentUrl()).catch(error => favoriteFailed(link, error))
       break
   }
 }
@@ -143,8 +150,8 @@ const observer = new MutationObserver(() => {
 
 observer.observe(document.documentElement, { childList: true, subtree: true })
 document.addEventListener('click', onClick)
-document.addEventListener('turbo:load', () => void refreshFavorites())
+document.addEventListener('turbo:load', () => refreshFavorites().catch(logError))
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && changes.favorite_decks && extensionAlive()) void refreshFavorites()
+  if (area === 'sync' && changes.favorite_decks && extensionAlive()) refreshFavorites().catch(logError)
 })
 scan()

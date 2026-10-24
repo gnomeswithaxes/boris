@@ -4,7 +4,7 @@ Guidance for `src/cardmarket/`. Shared Scryfall, storage and build notes live in
 
 ## Routing
 
-`content_script.ts` holds a `routes` table: each entry has a `match` regex tested against `window.location.pathname`, an optional boolean `setting` that must be on, and the `run` function. Every matching route runs (more than one can match the same page); the settings they need are read in one `getSyncSettings` call. Add a feature by adding a row.
+`content_script.ts` holds a `routes` table: each entry has a `match` regex tested against `window.location.pathname`, an optional boolean `setting` that must be on, and `run`, the list of feature functions. Every matching route runs (more than one can match the same page); the settings they need are read in one `getSyncSettings` call. Each feature runs on its own, so one that throws or rejects is logged with `logError` and doesn't stop the others. Add a feature by adding a row.
 
 | `match` | `setting` | Calls |
 |---|---|---|

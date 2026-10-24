@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Toggle } from './components'
 import { getSyncSettings, setSyncSetting } from './common/storage'
+import { logError } from './common/utilities'
 import type { SyncStorage } from './common/storage'
 import './options.css'
 
@@ -15,13 +16,16 @@ export const Options = () => {
   })
 
   useEffect(() => {
-    getSyncSettings(['auto', 'printVersion', 'images', 'shoppingWizard']).then(setSettings)
+    getSyncSettings(['auto', 'printVersion', 'images', 'shoppingWizard']).then(setSettings, logError)
   }, [])
 
   const toggle = (key: keyof OptionKeys) => {
     const newValue = !settings[key]
     setSettings(prev => ({ ...prev, [key]: newValue }))
-    setSyncSetting(key, newValue)
+    setSyncSetting(key, newValue).catch(error => {
+      logError(error)
+      setSettings(prev => ({ ...prev, [key]: !newValue }))
+    })
   }
 
   return (
