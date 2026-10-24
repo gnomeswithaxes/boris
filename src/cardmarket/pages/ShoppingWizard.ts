@@ -18,8 +18,7 @@ export function addDisclaimer(): void {
 
 export async function addLinkToCards(): Promise<void> {
   const saved_urls: ISavedUrl[] = (await getLocalSetting('urls')) ?? []
-  const rows = [...document.getElementsByTagName('tbody')]
-    .flatMap(tbody => [...tbody.getElementsByTagName('tr')])
+  const rows = [...document.getElementsByTagName('tbody')].flatMap(tbody => [...tbody.getElementsByTagName('tr')])
 
   // Resolve rows through a bounded pool. Each task only reads saved_urls and
   // returns any new entry; the array is mutated sequentially afterwards so
@@ -36,7 +35,7 @@ export async function addLinkToCards(): Promise<void> {
     if (!card) return null
 
     const saved = saved_urls.find(u => u.mkm_id === cardId)
-    const url = saved?.url ?? await format_url(card, cardVersion, setTitle)
+    const url = saved?.url ?? (await format_url(card, cardVersion, setTitle))
 
     if (url) {
       showCardLinks(cardElem, card.name, url, allPrintingsUrl(url))
@@ -45,7 +44,12 @@ export async function addLinkToCards(): Promise<void> {
 
     const fallback = await fetch_single(cardElem.textContent?.replace(/\(V\.\d+\)/g, '') ?? '')
     if (fallback) {
-      showCardLinks(cardElem, fallback.name, fallback.purchase_uris?.cardmarket ?? null, `https://www.cardmarket.com/Magic/Cards/${slug(fallback.name)}`)
+      showCardLinks(
+        cardElem,
+        fallback.name,
+        fallback.purchase_uris?.cardmarket ?? null,
+        `https://www.cardmarket.com/Magic/Cards/${slug(fallback.name)}`,
+      )
     }
     return null
   })
@@ -67,7 +71,10 @@ function showCardLinks(cardElem: Element, name: string, url: string | null, allP
 }
 
 function slug(text: string): string {
-  return text.replace(/ \/\/ /g, '-').replace(/[:,]/g, '').replace(/\s+/g, '-')
+  return text
+    .replace(/ \/\/ /g, '-')
+    .replace(/[:,]/g, '')
+    .replace(/\s+/g, '-')
 }
 
 async function format_url(card: IScryfallCard, version: string, setTitle: string): Promise<string> {

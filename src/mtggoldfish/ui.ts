@@ -175,8 +175,15 @@ function favoriteItem(deck: IFavoriteDeck): HTMLElement {
   return item
 }
 
-export function renderFavorites(scope: HTMLElement, decks: IFavoriteDeck[], currentUrl: string, canFavorite: boolean): void {
-  const favorite = scope.querySelector<HTMLElement>('.boris-nav > [data-boris-action="favorite"], .boris-nav > [data-boris-action="unfavorite"]')
+export function renderFavorites(
+  scope: HTMLElement,
+  decks: IFavoriteDeck[],
+  currentUrl: string,
+  canFavorite: boolean,
+): void {
+  const favorite = scope.querySelector<HTMLElement>(
+    '.boris-nav > [data-boris-action="favorite"], .boris-nav > [data-boris-action="unfavorite"]',
+  )
   if (favorite) {
     const isFavorite = decks.some(deck => deck.url === currentUrl)
     favorite.hidden = !canFavorite

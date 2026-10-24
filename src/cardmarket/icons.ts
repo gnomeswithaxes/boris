@@ -16,8 +16,7 @@ export const storefrontIcon = () =>
 
 // Two cards fanned ±15° around their bottom centre: the front one whole, the back one only
 // where it shows past the front card's left edge and bottom.
-export const printingsIcon = () =>
-  icon('M4.6 11.9 7.2 2.2 14 4 11.4 13.7zM8 12.8 4.6 13.7 2 4 7.1 2.7')
+export const printingsIcon = () => icon('M4.6 11.9 7.2 2.2 14 4 11.4 13.7zM8 12.8 4.6 13.7 2 4 7.1 2.7')
 
 export function iconLink(href: string, tip: string, svg: SVGSVGElement): HTMLAnchorElement {
   const link = document.createElement('a')

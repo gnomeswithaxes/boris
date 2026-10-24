@@ -29,7 +29,11 @@ export const Options = () => {
       <h3>MTGGoldfish</h3>
       <Toggle label="Open decks on Cheapest prices" checked={settings.auto} onChange={() => toggle('auto')} />
       <h3>Cardmarket</h3>
-      <Toggle label="Show card art instead of camera icon" checked={settings.images} onChange={() => toggle('images')} />
+      <Toggle
+        label="Show card art instead of camera icon"
+        checked={settings.images}
+        onChange={() => toggle('images')}
+      />
       <Toggle
         label="Export Wants lists with names as shown"
         note="Off: English names are preferred"
@@ -38,7 +42,11 @@ export const Options = () => {
       />
       <Toggle
         label="Card links in Shopping Wizard results"
-        note={<><span className="experimental">Experimental:</span> saves the URLs of the Wants lists you visit</>}
+        note={
+          <>
+            <span className="experimental">Experimental:</span> saves the URLs of the Wants lists you visit
+          </>
+        }
         checked={settings.shoppingWizard}
         onChange={() => toggle('shoppingWizard')}
       />

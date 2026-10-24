@@ -32,7 +32,10 @@ export async function getFavorites(): Promise<IFavoriteDeck[]> {
 }
 
 async function saveFavorites(decks: IFavoriteDeck[]): Promise<void> {
-  await setSyncSetting('favorite_decks', [...decks].sort((a, b) => sortKey(a).localeCompare(sortKey(b))))
+  await setSyncSetting(
+    'favorite_decks',
+    [...decks].sort((a, b) => sortKey(a).localeCompare(sortKey(b))),
+  )
 }
 
 export async function addFavorite(deck: IFavoriteDeck): Promise<void> {

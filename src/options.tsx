@@ -10,5 +10,5 @@ root.render(
       <Header />
       <Options />
     </div>
-  </StrictMode>
+  </StrictMode>,
 )

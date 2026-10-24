@@ -5,8 +5,17 @@ import { saveWithFilePicker } from '../common/utilities'
 import { DECK_TABLE, deckFormat, deckListText, deckScope, deckTitle, isPaperTable, parseDeck } from './deck'
 import { resolvePrices } from './prices'
 import {
-  type Action, ensureToolbar, flash, renderCheapest, renderFavorites, renderPrices, setCheapestLoading, setTotal, showCheapest,
-  showUsd, wantsCheapest,
+  type Action,
+  ensureToolbar,
+  flash,
+  renderCheapest,
+  renderFavorites,
+  renderPrices,
+  setCheapestLoading,
+  setTotal,
+  showCheapest,
+  showUsd,
+  wantsCheapest,
 } from './ui'
 
 const extensionAlive = () => Boolean(chrome.runtime?.id)
@@ -19,7 +28,9 @@ function paperTable(scope: ParentNode): HTMLTableElement | undefined {
 
 async function refreshFavorites(): Promise<void> {
   const decks = await getFavorites()
-  document.querySelectorAll('.boris-nav').forEach(nav => renderFavorites(deckScope(nav), decks, currentUrl(), canFavorite()))
+  document
+    .querySelectorAll('.boris-nav')
+    .forEach(nav => renderFavorites(deckScope(nav), decks, currentUrl(), canFavorite()))
 }
 
 async function loadCheapest(scope: HTMLElement, table: HTMLTableElement): Promise<void> {
@@ -47,7 +58,7 @@ async function processTable(table: HTMLTableElement): Promise<void> {
   if (!table.isConnected) return
   setTotal(scope, 'price', renderPrices(rows, prices))
 
-  if (wantsCheapest(scope) || await getSyncSetting('auto')) await loadCheapest(scope, table)
+  if (wantsCheapest(scope) || (await getSyncSetting('auto'))) await loadCheapest(scope, table)
 }
 
 function scan(): void {
@@ -69,15 +80,19 @@ function currentRows(scope: ParentNode) {
 function copyList(scope: HTMLElement, link: HTMLElement): void {
   const rows = currentRows(scope)
   if (!rows.length) return flash(link, 'Copy failed')
-  navigator.clipboard.writeText(deckListText(rows)).then(() => flash(link, 'Copied'), () => flash(link, 'Copy failed'))
+  navigator.clipboard.writeText(deckListText(rows)).then(
+    () => flash(link, 'Copied'),
+    () => flash(link, 'Copy failed'),
+  )
 }
 
 function saveList(scope: HTMLElement, link: HTMLElement): void {
   const rows = currentRows(scope)
   if (!rows.length) return flash(link, 'Save failed')
   const name = (deckTitle(scope) ?? '').replace(/[^a-zA-Z0-9 ]+/g, '').trim() || 'deck'
-  saveWithFilePicker(new Blob([deckListText(rows)], { type: 'text/plain' }), `${name}.txt`)
-    .catch(() => flash(link, 'Save failed'))
+  saveWithFilePicker(new Blob([deckListText(rows)], { type: 'text/plain' }), `${name}.txt`).catch(() =>
+    flash(link, 'Save failed'),
+  )
 }
 
 function onClick(event: MouseEvent): void {

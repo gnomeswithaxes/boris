@@ -36,8 +36,11 @@ export async function showTrend(): Promise<void> {
     const cardId = get_mkm_id(row)
     return cardId ? cardmarketCard(cardId) : Promise.resolve(null)
   })
-  const names = await mapPool(rows, SCRYFALL_CONCURRENCY, async (row, i) =>
-    exacts[i]?.name ?? (await fetch_single(nameFromUrl(row)))?.name ?? '')
+  const names = await mapPool(
+    rows,
+    SCRYFALL_CONCURRENCY,
+    async (row, i) => exacts[i]?.name ?? (await fetch_single(nameFromUrl(row)))?.name ?? '',
+  )
   const cheapest = await cheapestPrintings(names)
 
   rows.forEach((row, i) => annotateRow(row, exacts[i], cheapest[i]))
@@ -46,14 +49,14 @@ export async function showTrend(): Promise<void> {
 // The product URL ends with a slug such as "Lightning-Bolt-V2"; only used when Scryfall
 // doesn't know the Cardmarket id.
 function nameFromUrl(row: Element): string {
-  const slug = row.getElementsByClassName('col-seller')[0]
-    ?.getElementsByTagName('a')[0]?.href.split('?')[0].split('/').at(-1) ?? ''
+  const slug =
+    row.getElementsByClassName('col-seller')[0]?.getElementsByTagName('a')[0]?.href.split('?')[0].split('/').at(-1) ??
+    ''
   return slug.replace(/-V\d+$/, '').replace(/-/g, ' ')
 }
 
 function annotateRow(row: Element, exact: IScryfallCard | null, cheapest: IScryfallCard | null): void {
-  const priceElem = row.getElementsByClassName('price-container')[0]
-    ?.getElementsByClassName('fw-bold')[0]
+  const priceElem = row.getElementsByClassName('price-container')[0]?.getElementsByClassName('fw-bold')[0]
   if (!priceElem) return
 
   const originalPrice = parsePrice(priceElem.innerHTML.replace(' €', ''))
@@ -73,7 +76,7 @@ function annotateRow(row: Element, exact: IScryfallCard | null, cheapest: IScryf
   const isFoil = row.querySelectorAll(`[${title_attribute}="Foil"]`).length > 0
   // Prefer the exact-set comparison for the headline colour when it's known;
   // only fall back to the cheapest-print comparison when there's no exact price.
-  const mainClass = isFoil ? 'boris-foil' : (exactClass || cheapestClass)
+  const mainClass = isFoil ? 'boris-foil' : exactClass || cheapestClass
 
   priceElem.innerHTML = `<span class="${mainClass}">${priceElem.innerHTML}</span>`
 

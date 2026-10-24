@@ -87,9 +87,9 @@ export async function addCheckboxes(): Promise<void> {
     })
   }
 
-  document.getElementById('loadMoreButton')?.addEventListener('click', () =>
-    sleep(3000).then(() => colorPrices(prices[reference]))
-  )
+  document
+    .getElementById('loadMoreButton')
+    ?.addEventListener('click', () => sleep(3000).then(() => colorPrices(prices[reference])))
 }
 
 function colorPrices(referencePrice: number | undefined): void {

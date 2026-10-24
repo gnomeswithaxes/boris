@@ -1,142 +1,144 @@
 .col-boris-image {
-    flex: 0 0 6%;
-    max-width: 6%;
-    justify-content: center;
-    align-items: center;
+  flex: 0 0 6%;
+  max-width: 6%;
+  justify-content: center;
+  align-items: center;
 }
 
 span.boris-image {
-    display: block;
-    flex-shrink: 0;
-    width: 38px;
+  display: block;
+  flex-shrink: 0;
+  width: 38px;
 }
 
 span.boris-image > img {
-    display: block;
-    width: 100%;
-    height: auto;
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .col {
-    display: flex;
-    align-items: center !important;
+  display: flex;
+  align-items: center !important;
 }
 
 .price-container .fw-bold a.boris-price-link {
-    color: inherit;
+  color: inherit;
 }
 
 .boris-lower {
-    color: #1a7f37;
+  color: #1a7f37;
 }
 
 .boris-higher {
-    color: #c62828;
+  color: #c62828;
 }
 
 .boris-foil {
-    color: #9400d3;
+  color: #9400d3;
 }
 
-[data-bs-theme="dark"] .boris-lower {
-    color: #5cb85c;
+[data-bs-theme='dark'] .boris-lower {
+  color: #5cb85c;
 }
 
-[data-bs-theme="dark"] .boris-higher {
-    color: #f87171;
+[data-bs-theme='dark'] .boris-higher {
+  color: #f87171;
 }
 
-[data-bs-theme="dark"] .boris-foil {
-    color: #c084fc;
+[data-bs-theme='dark'] .boris-foil {
+  color: #c084fc;
 }
 
 .boris-reference {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .boris-reference-price {
-    min-width: 4.5em;
-    font-variant-numeric: tabular-nums;
+  min-width: 4.5em;
+  font-variant-numeric: tabular-nums;
 }
 
 .boris-reference input {
-    margin: 0 0 0 .5em;
+  margin: 0 0 0 0.5em;
 }
 
 .seller-name:has(.boris-seller),
 .boris-seller {
-    min-width: 0;
+  min-width: 0;
 }
 
 .boris-seller,
 .boris-card-links {
-    white-space: nowrap;
+  white-space: nowrap;
 }
 
 .boris-card-links {
-    display: flex;
-    align-items: center;
-    min-width: 0;
+  display: flex;
+  align-items: center;
+  min-width: 0;
 }
 
 .boris-seller > a:not(.boris-icon-link),
 .boris-card-links > :last-child {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .boris-icon-link {
-    display: inline-flex;
-    flex-shrink: 0;
+  display: inline-flex;
+  flex-shrink: 0;
 }
 
 .boris-divider {
-    flex-shrink: 0;
-    width: 1px;
-    height: 14px;
-    margin: 0 .4em;
-    background: currentColor;
-    opacity: .35;
+  flex-shrink: 0;
+  width: 1px;
+  height: 14px;
+  margin: 0 0.4em;
+  background: currentColor;
+  opacity: 0.35;
 }
 
 .boris-divider:first-child {
-    margin-left: .15em;
+  margin-left: 0.15em;
 }
 
 .boris-icon-link svg {
-    width: 16px;
-    height: 16px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.3;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .shariff li.boris-scryfall {
-    overflow: visible;
+  overflow: visible;
 }
 
 .boris-scryfall > a {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #2b253a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #2b253a;
 }
 
 .boris-scryfall img {
-    width: 22px;
-    height: 22px;
+  width: 22px;
+  height: 22px;
 }
 
 /* Offer rows are striped Bootstrap tables: every cell paints its background as an inset
    box-shadow of --bs-table-bg-state, so the tint goes through that variable. */
 .boris-in-cart {
-    --bs-table-bg-state: rgba(var(--bs-success-rgb), .18);
+  --bs-table-bg-state: rgba(var(--bs-success-rgb), 0.18);
 }
 
 .boris-in-cart > .col-sellerProductInfo {
-    box-shadow: inset 3px 0 0 var(--bs-success), inset 0 0 0 9999px var(--bs-table-bg-state);
+  box-shadow:
+    inset 3px 0 0 var(--bs-success),
+    inset 0 0 0 9999px var(--bs-table-bg-state);
 }

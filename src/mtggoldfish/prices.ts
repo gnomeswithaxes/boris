@@ -34,15 +34,23 @@ async function lookupPrintings(rows: DeckRow[]): Promise<Array<IScryfallCard | n
 }
 
 export function resolvePrices(rows: DeckRow[]): Promise<PriceInfo[]> {
-  const missing = rows.filter((row, i) =>
-    !printingCache.has(printingKey(row)) && rows.findIndex(r => printingKey(r) === printingKey(row)) === i)
+  const missing = rows.filter(
+    (row, i) => !printingCache.has(printingKey(row)) && rows.findIndex(r => printingKey(r) === printingKey(row)) === i,
+  )
 
   if (missing.length) {
     const lookup = lookupPrintings(missing)
-    missing.forEach((row, i) => cached(printingCache, printingKey(row), async () => {
-      const card = (await lookup)[i]
-      return { unit: eurUnit(card), url: card ? card.purchase_uris?.cardmarket ?? card.scryfall_uri : null }
-    }, info => info.unit === null))
+    missing.forEach((row, i) =>
+      cached(
+        printingCache,
+        printingKey(row),
+        async () => {
+          const card = (await lookup)[i]
+          return { unit: eurUnit(card), url: card ? (card.purchase_uris?.cardmarket ?? card.scryfall_uri) : null }
+        },
+        info => info.unit === null,
+      ),
+    )
   }
   return Promise.all(rows.map(row => printingCache.get(printingKey(row))!))
 }

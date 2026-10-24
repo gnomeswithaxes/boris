@@ -27,8 +27,14 @@ const Popup = () => {
             {favorites.map(deck => (
               <li key={deck.url}>
                 <span className="favorite-format">{deck.format}</span>
-                <a href={deck.url} target="_blank" rel="noreferrer">{deck.title}</a>
-                <button type="button" aria-label={`Remove ${deck.title} from favorites`} onClick={() => handleRemove(deck.url)}>
+                <a href={deck.url} target="_blank" rel="noreferrer">
+                  {deck.title}
+                </a>
+                <button
+                  type="button"
+                  aria-label={`Remove ${deck.title} from favorites`}
+                  onClick={() => handleRemove(deck.url)}
+                >
                   ×
                 </button>
               </li>
@@ -47,5 +53,5 @@ const root = createRoot(document.getElementById('root')!)
 root.render(
   <StrictMode>
     <Popup />
-  </StrictMode>
+  </StrictMode>,
 )

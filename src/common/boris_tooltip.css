@@ -1,44 +1,44 @@
 [data-boris-tip] {
-    --boris-tip-bg: #212529;
-    --boris-tip-text: #fff;
-    position: relative;
+  --boris-tip-bg: #212529;
+  --boris-tip-text: #fff;
+  position: relative;
 }
 
-[data-bs-theme="dark"] [data-boris-tip] {
-    --boris-tip-bg: #e6e6e6;
-    --boris-tip-text: #1e1e1e;
+[data-bs-theme='dark'] [data-boris-tip] {
+  --boris-tip-bg: #e6e6e6;
+  --boris-tip-text: #1e1e1e;
 }
 
 [data-boris-tip]::after {
-    content: attr(data-boris-tip);
-    position: absolute;
-    right: 0;
-    bottom: 100%;
-    z-index: 10;
-    margin-bottom: 4px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: var(--boris-tip-bg);
-    color: var(--boris-tip-text);
-    font-size: 0.8rem;
-    font-weight: normal;
-    white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.1s;
+  content: attr(data-boris-tip);
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  z-index: 10;
+  margin-bottom: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--boris-tip-bg);
+  color: var(--boris-tip-text);
+  font-size: 0.8rem;
+  font-weight: normal;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s;
 }
 
 [data-boris-tip][data-boris-tip-feature]::after {
-    padding-right: 24px;
-    background: var(--boris-tip-bg) url('./assets/boris32.png') no-repeat right 5px center / 14px 14px;
+  padding-right: 24px;
+  background: var(--boris-tip-bg) url('./assets/boris32.png') no-repeat right 5px center / 14px 14px;
 }
 
-[data-boris-tip][data-boris-tip-align="start"]::after {
-    right: auto;
-    left: 0;
+[data-boris-tip][data-boris-tip-align='start']::after {
+  right: auto;
+  left: 0;
 }
 
 [data-boris-tip]:hover::after {
-    opacity: 1;
-    transition-delay: 0.3s;
+  opacity: 1;
+  transition-delay: 0.3s;
 }

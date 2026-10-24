@@ -25,7 +25,7 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T | null> 
   try {
     const response = await fetch(url, init)
     if (!response.ok) return null
-    return await response.json() as T
+    return (await response.json()) as T
   } catch {
     return null
   }
@@ -61,9 +61,7 @@ export interface CardIdentifier {
 }
 
 export async function fetch_single(name: string): Promise<IScryfallCard | null> {
-  return fetchJson(
-    `https://api.scryfall.com/cards/named?include_multilingual=true&fuzzy=${encodeURIComponent(name)}`
-  )
+  return fetchJson(`https://api.scryfall.com/cards/named?include_multilingual=true&fuzzy=${encodeURIComponent(name)}`)
 }
 
 export async function get_cardmarket(id: string): Promise<IScryfallCard | null> {
@@ -72,12 +70,15 @@ export async function get_cardmarket(id: string): Promise<IScryfallCard | null> 
 
 // The /cards/collection endpoint accepts at most 75 identifiers per request.
 export async function fetch_collection(ids: CardIdentifier[]): Promise<IScryfallCard[]> {
-  const responses = await Promise.all(chunks(ids, 75).map(batch =>
-    fetchJson<{ data: IScryfallCard[] }>('https://api.scryfall.com/cards/collection', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifiers: batch }),
-    })))
+  const responses = await Promise.all(
+    chunks(ids, 75).map(batch =>
+      fetchJson<{ data: IScryfallCard[] }>('https://api.scryfall.com/cards/collection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifiers: batch }),
+      }),
+    ),
+  )
   return responses.flatMap(response => response?.data ?? [])
 }
 
@@ -85,17 +86,21 @@ export async function fetch_collection(ids: CardIdentifier[]): Promise<IScryfall
 // "Emeritus of Conflict // Lightning Bolt"), so a full-name match wins over a face match.
 export function find_by_name(cards: IScryfallCard[], name: string): IScryfallCard | undefined {
   const wanted = name.toLowerCase()
-  return cards.find(card => card.name.toLowerCase() === wanted)
-    ?? cards.find(card => card.name.toLowerCase().split(' // ').includes(wanted))
+  return (
+    cards.find(card => card.name.toLowerCase() === wanted) ??
+    cards.find(card => card.name.toLowerCase().split(' // ').includes(wanted))
+  )
 }
 
 // One search returns the cheapest EUR printing of every requested card (prefer:eur-low with the
 // default unique:cards). Names are sent in groups to keep the query short.
 export async function get_cheapest_many(names: string[]): Promise<Array<IScryfallCard | null>> {
-  const found = await Promise.all(chunks(names, 40).map(group => {
-    const terms = group.map(name => `!"${name.replaceAll('"', '')}"`).join(' or ')
-    return search_all(`(${terms}) prefer:eur-low -border:gold`)
-  }))
+  const found = await Promise.all(
+    chunks(names, 40).map(group => {
+      const terms = group.map(name => `!"${name.replaceAll('"', '')}"`).join(' or ')
+      return search_all(`(${terms}) prefer:eur-low -border:gold`)
+    }),
+  )
   const cards = found.flat()
   return names.map(name => find_by_name(cards, name) ?? null)
 }

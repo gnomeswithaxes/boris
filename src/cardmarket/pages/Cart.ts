@@ -17,7 +17,7 @@ export function addAllPrintingsToCart(): void {
 }
 
 export async function highlightCartSellers(): Promise<void> {
-  const sellers = new Set(await getSessionSetting('cartSellers') ?? [])
+  const sellers = new Set((await getSessionSetting('cartSellers')) ?? [])
   if (!sellers.size) return
 
   const highlight = () => {

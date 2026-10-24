@@ -1,5 +1,7 @@
 declare global {
-  interface Window { Masonry?: { data(element: Element): { layout(): void } | undefined } }
+  interface Window {
+    Masonry?: { data(element: Element): { layout(): void } | undefined }
+  }
 }
 
 // Runs in the page's world: Cardmarket's Masonry grids (e.g. Shopping Wizard results) position

@@ -22,8 +22,8 @@ export function addPrintListButton(): void {
 
   printBtn.addEventListener('click', async () => {
     const printVersion = await getSyncSetting('printVersion')
-    const wantsTitle = document.getElementsByClassName('page-title-container')[0]
-      ?.getElementsByTagName('h1')[0]?.textContent ?? 'wants'
+    const wantsTitle =
+      document.getElementsByClassName('page-title-container')[0]?.getElementsByTagName('h1')[0]?.textContent ?? 'wants'
 
     // Resolve each row's line through a bounded pool; mapPool preserves row
     // order so the exported list matches the on-page order.
@@ -47,26 +47,28 @@ export function addPrintListButton(): void {
 
 export async function saveAllUrls(): Promise<void> {
   const saved_urls: ISavedUrl[] = (await getLocalSetting('urls')) ?? []
-  const rows = document.getElementById('WantsListTable')
-    ?.getElementsByTagName('tbody')[0]
-    ?.getElementsByTagName('tr')
+  const rows = document.getElementById('WantsListTable')?.getElementsByTagName('tbody')[0]?.getElementsByTagName('tr')
 
   if (!rows) return
 
   // Fetch card names in parallel through a bounded pool, then merge into
   // saved_urls sequentially so concurrent lookups don't race on the array.
-  const resolved = await mapPool([...rows], SCRYFALL_CONCURRENCY, async (row): Promise<{ cardId: string; name: string; url: string } | null> => {
-    const cardUrl = get_mkm_url(row)
-    if (!cardUrl?.includes('/Products/Singles/')) return null
+  const resolved = await mapPool(
+    [...rows],
+    SCRYFALL_CONCURRENCY,
+    async (row): Promise<{ cardId: string; name: string; url: string } | null> => {
+      const cardUrl = get_mkm_url(row)
+      if (!cardUrl?.includes('/Products/Singles/')) return null
 
-    const cardId = get_mkm_id(row)
-    if (!cardId) return null
+      const cardId = get_mkm_id(row)
+      if (!cardId) return null
 
-    const card = await cardmarketCard(cardId)
-    if (!card?.name) return null
+      const card = await cardmarketCard(cardId)
+      if (!card?.name) return null
 
-    return { cardId, name: card.name, url: cardUrl }
-  })
+      return { cardId, name: card.name, url: cardUrl }
+    },
+  )
 
   for (const entry of resolved) {
     if (!entry) continue

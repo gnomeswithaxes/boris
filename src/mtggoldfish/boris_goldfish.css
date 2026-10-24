@@ -1,153 +1,153 @@
 .boris-scope {
-    --boris-accent: #d9822b;
-    --boris-on-accent: #212529;
-    --boris-fill: #f0ad4e;
-    --boris-cheap: #1a7f37;
-    --boris-text: #303030;
-    --boris-border: #4f4f4f;
-    --boris-hover: rgba(0, 0, 0, 0.06);
-    --boris-muted: #6c757d;
+  --boris-accent: #d9822b;
+  --boris-on-accent: #212529;
+  --boris-fill: #f0ad4e;
+  --boris-cheap: #1a7f37;
+  --boris-text: #303030;
+  --boris-border: #4f4f4f;
+  --boris-hover: rgba(0, 0, 0, 0.06);
+  --boris-muted: #6c757d;
 }
 
-[data-bs-theme="dark"] .boris-scope {
-    --boris-accent: #f0ad4e;
-    --boris-cheap: #5cb85c;
-    --boris-text: #e6e6e6;
-    --boris-border: #8a8a8a;
-    --boris-hover: rgba(255, 255, 255, 0.08);
-    --boris-muted: #a0a0a0;
+[data-bs-theme='dark'] .boris-scope {
+  --boris-accent: #f0ad4e;
+  --boris-cheap: #5cb85c;
+  --boris-text: #e6e6e6;
+  --boris-border: #8a8a8a;
+  --boris-hover: rgba(255, 255, 255, 0.08);
+  --boris-muted: #a0a0a0;
 }
 
 .boris-nav {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    margin: 10px 0 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 6px;
 }
 
 .boris-btn,
 .boris-segmented > button {
-    padding: 5px 14px;
-    border: 1px solid var(--boris-border);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--boris-text);
-    font: inherit;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    white-space: nowrap;
-    cursor: pointer;
+  padding: 5px 14px;
+  border: 1px solid var(--boris-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--boris-text);
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
-.boris-btn:hover:not([aria-pressed="true"], :disabled) {
-    background: var(--boris-hover);
+.boris-btn:hover:not([aria-pressed='true'], :disabled) {
+  background: var(--boris-hover);
 }
 
 .boris-btn:focus-visible,
 .boris-segmented > button:focus-visible {
-    outline: 2px solid var(--boris-accent);
-    outline-offset: 2px;
+  outline: 2px solid var(--boris-accent);
+  outline-offset: 2px;
 }
 
-.boris-btn[aria-pressed="true"],
-.boris-segmented > button[aria-pressed="true"] {
-    background: var(--boris-fill);
-    border-color: var(--boris-fill);
-    color: var(--boris-on-accent);
-    font-weight: 700;
+.boris-btn[aria-pressed='true'],
+.boris-segmented > button[aria-pressed='true'] {
+  background: var(--boris-fill);
+  border-color: var(--boris-fill);
+  color: var(--boris-on-accent);
+  font-weight: 700;
 }
 
 .boris-segmented {
-    display: inline-flex;
-    border: 1px solid var(--boris-border);
-    border-radius: 6px;
-    overflow: hidden;
+  display: inline-flex;
+  border: 1px solid var(--boris-border);
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 .boris-segmented > button {
-    border: 0;
-    border-radius: 0;
-    padding: 5px 12px;
+  border: 0;
+  border-radius: 0;
+  padding: 5px 12px;
 }
 
 .boris-segmented > button + button {
-    border-left: 1px solid var(--boris-border);
+  border-left: 1px solid var(--boris-border);
 }
 
 .boris-segmented > button:disabled {
-    cursor: default;
-    opacity: 0.45;
+  cursor: default;
+  opacity: 0.45;
 }
 
 .boris-segmented > button[data-loading] {
-    opacity: 0.7;
+  opacity: 0.7;
 }
 
 .boris-separator {
-    width: 1px;
-    align-self: stretch;
-    background: var(--boris-border);
-    opacity: 0.4;
+  width: 1px;
+  align-self: stretch;
+  background: var(--boris-border);
+  opacity: 0.4;
 }
 
 .boris-favorites {
-    margin-left: auto;
+  margin-left: auto;
 }
 
 .boris-favorite-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
 }
 
 .boris-unfavorite {
-    padding: 0 0.3em;
-    border: 0;
-    background: transparent;
-    color: var(--boris-muted);
-    font-size: 1.2em;
-    line-height: 1;
-    cursor: pointer;
+  padding: 0 0.3em;
+  border: 0;
+  background: transparent;
+  color: var(--boris-muted);
+  font-size: 1.2em;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .boris-unfavorite:hover {
-    color: #dc3545;
+  color: #dc3545;
 }
 
 .boris-favorite-link {
-    color: inherit;
-    text-decoration: none;
+  color: inherit;
+  text-decoration: none;
 }
 
 .boris-total-price:before {
-    content: "Boris";
+  content: 'Boris';
 }
 
 .boris-total-price {
-    color: var(--boris-accent);
+  color: var(--boris-accent);
 }
 
 .boris-total-cheapest:before {
-    content: "Cheapest";
+  content: 'Cheapest';
 }
 
 .boris-total-cheapest,
 .boris-cheap {
-    color: var(--boris-cheap);
+  color: var(--boris-cheap);
 }
 
 .boris-exact {
-    color: inherit;
+  color: inherit;
 }
 
 .boris-eur.boris-na {
-    color: var(--boris-muted);
+  color: var(--boris-muted);
 }
 
 .boris-scope:not(.boris-show-usd) .boris-price-cell .deck-preview-price-value,
 .boris-show-usd .boris-eur,
 .boris-scope:not(.boris-show-cheapest) .boris-cheap,
 .boris-show-cheapest .boris-price-cell:has(.boris-cheap) .boris-exact {
-    display: none;
+  display: none;
 }

@@ -27,8 +27,8 @@ const syncDefaults: SyncStorage = {
 }
 
 export function getSyncSetting<K extends keyof SyncStorage>(key: K): Promise<SyncStorage[K]> {
-  return new Promise((resolve) => {
-    chrome.storage.sync.get(key, (result) => {
+  return new Promise(resolve => {
+    chrome.storage.sync.get(key, result => {
       resolve((result[key] as SyncStorage[K]) ?? syncDefaults[key])
     })
   })
@@ -39,8 +39,8 @@ export function setSyncSetting<K extends keyof SyncStorage>(key: K, value: SyncS
 }
 
 export function getSyncSettings<K extends keyof SyncStorage>(keys: K[]): Promise<Pick<SyncStorage, K>> {
-  return new Promise((resolve) => {
-    chrome.storage.sync.get(keys as string[], (result) => {
+  return new Promise(resolve => {
+    chrome.storage.sync.get(keys as string[], result => {
       const settings = {} as Pick<SyncStorage, K>
       for (const key of keys) {
         settings[key] = (result[key] as SyncStorage[K]) ?? syncDefaults[key]
@@ -51,8 +51,8 @@ export function getSyncSettings<K extends keyof SyncStorage>(keys: K[]): Promise
 }
 
 export function getLocalSetting<K extends keyof LocalStorage>(key: K): Promise<LocalStorage[K] | undefined> {
-  return new Promise((resolve) => {
-    chrome.storage.local.get(key, (result) => {
+  return new Promise(resolve => {
+    chrome.storage.local.get(key, result => {
       resolve(result[key] as LocalStorage[K] | undefined)
     })
   })

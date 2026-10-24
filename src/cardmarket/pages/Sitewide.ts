@@ -1,4 +1,11 @@
-import { autocomplete_results, boris_img_class, camera_class, col_camera_icon_classlist, header_selector, icon_selector } from '../page_elements'
+import {
+  autocomplete_results,
+  boris_img_class,
+  camera_class,
+  col_camera_icon_classlist,
+  header_selector,
+  icon_selector,
+} from '../page_elements'
 import { get_mkm_src, replaceCamera } from '../utilities'
 import { getSyncSetting } from '../../common/storage'
 
@@ -8,7 +15,7 @@ export function addAutocompleteImages(): void {
     const results = document.getElementById(autocomplete_results)
     if (!results) return
 
-    const observer = new MutationObserver((mutationList) => {
+    const observer = new MutationObserver(mutationList => {
       for (const mutation of mutationList) {
         if (mutation.type !== 'childList') continue
         const icons = results.getElementsByClassName(camera_class)
