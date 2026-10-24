@@ -1,31 +1,26 @@
 import type { IScryfallCard } from './interfaces'
 
-// Max lookups in flight at once. The request rate itself is bounded by the gates below.
+// Max lookups in flight at once. The request rate itself is bounded by the service worker's gates.
 export const SCRYFALL_CONCURRENCY = 8
 
-// Scryfall allows 2 req/s on /cards/search, /cards/named and /cards/collection and 10 req/s
-// elsewhere; a 429 locks the client out for 30 seconds. Each gate hands out start slots
-// spaced by its interval, shared by every caller on the page.
-function createGate(intervalMs: number): () => Promise<void> {
-  let nextSlot = 0
-  return () => {
-    const now = Date.now()
-    const slot = Math.max(now, nextSlot)
-    nextSlot = slot + intervalMs
-    return new Promise(resolve => setTimeout(resolve, slot - now))
-  }
+export const SCRYFALL_API = 'https://api.scryfall.com/'
+export const SCRYFALL_MESSAGE = 'boris:scryfall'
+
+export interface ScryfallRequest {
+  type: typeof SCRYFALL_MESSAGE
+  url: string
+  body?: string
 }
 
-const slowEndpoint = /\/cards\/(search|named|collection)\b/
-const slowGate = createGate(550)
-const defaultGate = createGate(110)
-
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T | null> {
-  await (slowEndpoint.test(url) ? slowGate : defaultGate)()
+// Requests go through the service worker (scryfall_worker.ts), so every tab shares one rate gate.
+async function fetchJson<T>(url: string, body?: unknown): Promise<T | null> {
+  const request: ScryfallRequest = {
+    type: SCRYFALL_MESSAGE,
+    url,
+    body: body === undefined ? undefined : JSON.stringify(body),
+  }
   try {
-    const response = await fetch(url, init)
-    if (!response.ok) return null
-    return (await response.json()) as T
+    return ((await chrome.runtime.sendMessage(request)) as T | null) ?? null
   } catch {
     return null
   }
@@ -39,7 +34,7 @@ interface SearchPage {
 
 async function search_all(query: string): Promise<IScryfallCard[]> {
   const cards: IScryfallCard[] = []
-  let url: string | undefined = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}`
+  let url: string | undefined = `${SCRYFALL_API}cards/search?q=${encodeURIComponent(query)}`
   while (url) {
     const page: SearchPage | null = await fetchJson<SearchPage>(url)
     if (!page) break
@@ -61,22 +56,18 @@ export interface CardIdentifier {
 }
 
 export async function fetch_single(name: string): Promise<IScryfallCard | null> {
-  return fetchJson(`https://api.scryfall.com/cards/named?include_multilingual=true&fuzzy=${encodeURIComponent(name)}`)
+  return fetchJson(`${SCRYFALL_API}cards/named?include_multilingual=true&fuzzy=${encodeURIComponent(name)}`)
 }
 
 export async function get_cardmarket(id: string): Promise<IScryfallCard | null> {
-  return fetchJson(`https://api.scryfall.com/cards/cardmarket/${id}`)
+  return fetchJson(`${SCRYFALL_API}cards/cardmarket/${id}`)
 }
 
 // The /cards/collection endpoint accepts at most 75 identifiers per request.
 export async function fetch_collection(ids: CardIdentifier[]): Promise<IScryfallCard[]> {
   const responses = await Promise.all(
     chunks(ids, 75).map(batch =>
-      fetchJson<{ data: IScryfallCard[] }>('https://api.scryfall.com/cards/collection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifiers: batch }),
-      }),
+      fetchJson<{ data: IScryfallCard[] }>(`${SCRYFALL_API}cards/collection`, { identifiers: batch }),
     ),
   )
   return responses.flatMap(response => response?.data ?? [])

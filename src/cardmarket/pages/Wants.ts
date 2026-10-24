@@ -2,8 +2,8 @@ import type { ISavedUrl } from '../../common/interfaces'
 import { cardmarketCard } from '../../common/cards'
 import { SCRYFALL_CONCURRENCY } from '../../common/scryfall'
 import { mapPool, saveWithFilePicker } from '../../common/utilities'
-import { getSyncSetting, getLocalSetting, setLocalSetting } from '../../common/storage'
-import { get_mkm_id, get_mkm_url } from '../utilities'
+import { getSyncSetting, getLocalSetting } from '../../common/storage'
+import { get_mkm_id, get_mkm_url, saveUrlCache } from '../utilities'
 
 export function addPrintListButton(): void {
   const table = document.getElementById('WantsListTable')?.getElementsByTagName('tbody')[0]
@@ -12,37 +12,50 @@ export function addPrintListButton(): void {
   const addDeckBtn = document.querySelectorAll("a[href$='AddDeckList']")[0]
   if (!addDeckBtn) return
 
-  addDeckBtn.classList.add('mr-3')
+  addDeckBtn.classList.add('me-2')
 
-  const printBtn = document.createElement('div')
-  printBtn.classList.add('btn')
-  printBtn.style.color = 'rgb(240, 173, 78)'
-  printBtn.style.borderColor = 'rgb(240, 173, 78)'
+  const printBtn = document.createElement('button')
+  printBtn.type = 'button'
+  printBtn.className = 'btn btn-outline-warning'
   printBtn.textContent = 'Save as...'
 
-  printBtn.addEventListener('click', async () => {
-    const printVersion = await getSyncSetting('printVersion')
+  printBtn.addEventListener('click', () => {
     const wantsTitle =
       document.getElementsByClassName('page-title-container')[0]?.getElementsByTagName('h1')[0]?.textContent ?? 'wants'
 
-    // Resolve each row's line through a bounded pool; mapPool preserves row
-    // order so the exported list matches the on-page order.
-    const lines = await mapPool([...table.getElementsByTagName('tr')], SCRYFALL_CONCURRENCY, async row => {
-      const amount = row.querySelector('td.amount')?.getAttribute('data-amount') ?? '1'
-      const name = row.querySelector('td.name a')?.textContent ?? ''
+    printBtn.disabled = true
+    printBtn.textContent = 'Loading…'
+    const contents = wantsListBlob(table)
+    contents
+      .finally(() => {
+        printBtn.disabled = false
+        printBtn.textContent = 'Save as...'
+      })
+      .catch(() => {})
 
-      if (printVersion) return `${amount} ${name}\n`
-
-      const cardId = get_mkm_id(row)
-      if (!cardId) return ''
-      const card = await cardmarketCard(cardId)
-      return `${amount} ${card?.name ?? name}\n`
+    saveWithFilePicker(contents, `${wantsTitle}.txt`).catch(() => {
+      printBtn.textContent = 'Save failed'
+      setTimeout(() => (printBtn.textContent = 'Save as...'), 2000)
     })
-
-    saveWithFilePicker(new Blob([lines.join('')]), `${wantsTitle}.txt`)
   })
 
   addDeckBtn.after(printBtn)
+}
+
+async function wantsListBlob(table: HTMLTableSectionElement): Promise<Blob> {
+  const printVersion = await getSyncSetting('printVersion')
+  const lines = await mapPool([...table.getElementsByTagName('tr')], SCRYFALL_CONCURRENCY, async row => {
+    const amount = row.querySelector('td.amount')?.getAttribute('data-amount') ?? '1'
+    const name = row.querySelector('td.name a')?.textContent ?? ''
+
+    if (printVersion) return `${amount} ${name}\n`
+
+    const cardId = get_mkm_id(row)
+    if (!cardId) return `${amount} ${name}\n`
+    const card = await cardmarketCard(cardId)
+    return `${amount} ${card?.name ?? name}\n`
+  })
+  return new Blob([lines.join('')], { type: 'text/plain' })
 }
 
 export async function saveAllUrls(): Promise<void> {
@@ -80,5 +93,5 @@ export async function saveAllUrls(): Promise<void> {
     }
   }
 
-  await setLocalSetting('urls', saved_urls)
+  await saveUrlCache(saved_urls)
 }

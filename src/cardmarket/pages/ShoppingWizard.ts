@@ -1,8 +1,8 @@
 import type { ISavedUrl } from '../../common/interfaces'
 import { cardmarketCard } from '../../common/cards'
 import { fetch_single, SCRYFALL_CONCURRENCY } from '../../common/scryfall'
-import { getLocalSetting, setLocalSetting } from '../../common/storage'
-import { allPrintingsUrl, get_mkm_id, get_mkm_version } from '../utilities'
+import { getLocalSetting } from '../../common/storage'
+import { allPrintingsUrl, get_mkm_id, get_mkm_version, saveUrlCache } from '../utilities'
 import { title_attribute } from '../page_elements'
 import { mapPool } from '../../common/utilities'
 import { prependAllPrintings } from '../icons'
@@ -12,7 +12,10 @@ export function addDisclaimer(): void {
   const section = document.getElementsByClassName('card-columns')[0]
   if (!section) return
   const disclaimer = document.createElement('h4')
-  disclaimer.innerHTML = "<i style='color:red'>Experimental feature, some links may be wrong</i><hr>"
+  const text = document.createElement('i')
+  text.className = 'text-danger'
+  text.textContent = 'Experimental feature, some links may be wrong'
+  disclaimer.append(text, document.createElement('hr'))
   section.before(disclaimer)
 }
 
@@ -55,7 +58,7 @@ export async function addLinkToCards(): Promise<void> {
   })
 
   saved_urls.push(...newEntries.filter((e): e is ISavedUrl => e !== null))
-  await setLocalSetting('urls', saved_urls)
+  await saveUrlCache(saved_urls)
 }
 
 function showCardLinks(cardElem: Element, name: string, url: string | null, allPrintings: string | undefined): void {

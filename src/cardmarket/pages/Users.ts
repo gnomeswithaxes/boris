@@ -18,18 +18,7 @@ export async function showTrend(): Promise<void> {
   const table = document.getElementById('UserOffersTable')
   if (!table) return
 
-  const legend = document.createElement('div')
-  legend.innerHTML = `
-    <hr>
-    <p class="font-weight-bold">
-      E = Exact set / L = Lowest Available<br>
-      <span class="boris-lower">Lower price</span> /
-      <span class="boris-higher">Higher price</span> /
-      <span class="boris-foil">Foil [<i>not supported</i>]</span> /
-      <span class="color-primary">Price not found</span>
-    </p>
-  `
-  table.before(legend)
+  table.before(trendLegend())
 
   const rows = [...table.querySelectorAll('[id^=articleRow], [id^=stockRow]')]
   const exacts = await mapPool(rows, SCRYFALL_CONCURRENCY, row => {
@@ -59,12 +48,12 @@ function annotateRow(row: Element, exact: IScryfallCard | null, cheapest: IScryf
   const priceElem = row.getElementsByClassName('price-container')[0]?.getElementsByClassName('fw-bold')[0]
   if (!priceElem) return
 
-  const originalPrice = parsePrice(priceElem.innerHTML.replace(' €', ''))
+  const originalPrice = parsePrice((priceElem.textContent ?? '').replace(' €', ''))
 
   const playsetElems = priceElem.parentElement?.parentElement?.getElementsByClassName('text-muted')
   let ppu = 0
   if (playsetElems?.length) {
-    ppu = parsePPU(playsetElems[0].innerHTML)
+    ppu = parsePPU(playsetElems[0].textContent ?? '')
   }
 
   const cheapestPrice = eurUnit(cheapest) ?? 0
@@ -74,21 +63,70 @@ function annotateRow(row: Element, exact: IScryfallCard | null, cheapest: IScryf
   const exactClass = exactPrice ? class_from_price(originalPrice, exactPrice, ppu) : ''
 
   const isFoil = row.querySelectorAll(`[${title_attribute}="Foil"]`).length > 0
-  // Prefer the exact-set comparison for the headline colour when it's known;
-  // only fall back to the cheapest-print comparison when there's no exact price.
   const mainClass = isFoil ? 'boris-foil' : exactClass || cheapestClass
 
-  priceElem.innerHTML = `<span class="${mainClass}">${priceElem.innerHTML}</span>`
+  const original = span(mainClass)
+  original.append(...priceElem.childNodes)
+  priceElem.append(original)
 
   if (!isFoil) {
     if (exactPrice > 0 && exact?.id !== cheapest?.id) {
-      priceElem.innerHTML += `<br><span class="${exactClass}">E </span><a class="boris-price-link" href="${exact?.scryfall_uri ?? '#'}"> ${exactPrice.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</a>`
+      priceElem.append(document.createElement('br'), ...priceLine('E', exactClass, exactPrice, exact))
     }
     if (cheapestPrice > 0) {
       const label = exact?.id === cheapest?.id ? 'E=L' : 'L'
-      priceElem.innerHTML += `<br><span class="${cheapestClass}">${label} </span><a class="boris-price-link" href="${cheapest?.scryfall_uri ?? '#'}"> ${cheapestPrice.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</a>`
+      priceElem.append(document.createElement('br'), ...priceLine(label, cheapestClass, cheapestPrice, cheapest))
     }
   }
+}
+
+function span(className: string, text = ''): HTMLSpanElement {
+  const node = document.createElement('span')
+  if (className) node.className = className
+  node.textContent = text
+  return node
+}
+
+function priceLine(label: string, className: string, price: number, card: IScryfallCard | null): Node[] {
+  const link = document.createElement('a')
+  link.className = 'boris-price-link'
+  link.href = scryfallHref(card?.scryfall_uri)
+  link.textContent = ` ${price.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €`
+  return [span(className, `${label} `), link]
+}
+
+function scryfallHref(uri: string | undefined): string {
+  try {
+    const url = new URL(uri ?? '')
+    return url.protocol === 'https:' ? url.href : '#'
+  } catch {
+    return '#'
+  }
+}
+
+function trendLegend(): HTMLDivElement {
+  const foil = span('boris-foil', 'Foil [')
+  const notSupported = document.createElement('i')
+  notSupported.textContent = 'not supported'
+  foil.append(notSupported, ']')
+
+  const text = document.createElement('p')
+  text.className = 'fw-bold'
+  text.append(
+    'E = Exact set / L = Lowest Available',
+    document.createElement('br'),
+    span('boris-lower', 'Lower price'),
+    ' / ',
+    span('boris-higher', 'Higher price'),
+    ' / ',
+    foil,
+    ' / ',
+    span('color-primary', 'Price not found'),
+  )
+
+  const legend = document.createElement('div')
+  legend.append(document.createElement('hr'), text)
+  return legend
 }
 
 function class_from_price(oldPrice: number, newPrice: number, ppu: number): string {

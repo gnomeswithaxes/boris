@@ -34,7 +34,7 @@
     "service_worker": "src/background.ts",
     "type": "module"
   },
-  "permissions": ["storage", "unlimitedStorage"],
+  "permissions": ["storage"],
   "host_permissions": ["https://api.scryfall.com/*"],
   "icons": {
     "16": "images/boris16.png",

@@ -62,10 +62,26 @@ export function setLocalSetting<K extends keyof LocalStorage>(key: K, value: Loc
   return chrome.storage.local.set({ [key]: value })
 }
 
-export function getSessionSetting<K extends keyof SessionStorage>(key: K): Promise<SessionStorage[K] | undefined> {
-  return chrome.storage.session.get(key).then(result => result[key] as SessionStorage[K] | undefined)
+export const SESSION_ACCESS_MESSAGE = 'boris:session-access'
+
+// Content scripts can read chrome.storage.session only after the service worker has opened it to
+// them, and nothing guarantees the worker has run (e.g. after the extension is re-enabled): the
+// message wakes it and resolves once access is granted.
+let sessionAccess: Promise<unknown> | undefined
+const ensureSessionAccess = () => (sessionAccess ??= chrome.runtime.sendMessage(SESSION_ACCESS_MESSAGE))
+
+export async function getSessionSetting<K extends keyof SessionStorage>(
+  key: K,
+): Promise<SessionStorage[K] | undefined> {
+  await ensureSessionAccess()
+  const result = await chrome.storage.session.get(key)
+  return result[key] as SessionStorage[K] | undefined
 }
 
-export function setSessionSetting<K extends keyof SessionStorage>(key: K, value: SessionStorage[K]): Promise<void> {
-  return chrome.storage.session.set({ [key]: value })
+export async function setSessionSetting<K extends keyof SessionStorage>(
+  key: K,
+  value: SessionStorage[K],
+): Promise<void> {
+  await ensureSessionAccess()
+  await chrome.storage.session.set({ [key]: value })
 }

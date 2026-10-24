@@ -34,7 +34,7 @@ Vite + `vite-plugin-web-extension`. The plugin reads `manifest.json` at the proj
 | `src/options.html` + `src/options.tsx` | `dist/src/options.html` | React options page — same settings, standalone view |
 | `src/mtggoldfish/content_script.ts` | `dist/src/mtggoldfish/content_script.js` | Injected on mtggoldfish.com |
 | `src/cardmarket/content_script.ts` | `dist/src/cardmarket/content_script.js` | Injected on cardmarket.com |
-| `src/background.ts` | `dist/src/background.js` | Service worker; only grants content scripts access to `chrome.storage.session` |
+| `src/background.ts` | `dist/src/background.js` | Service worker, driven by runtime messages: performs every Scryfall request (`scryfall_worker.ts`) and grants content scripts access to `chrome.storage.session`. `getSessionSetting`/`setSessionSetting` first message it (`SESSION_ACCESS_MESSAGE`), which wakes it and grants access, since it may not have run yet (e.g. after the extension is re-enabled) |
 | `src/cardmarket/masonry.ts` | `dist/src/cardmarket/masonry.js` | Injected on cardmarket.com in the page's `MAIN` world (can see the page's globals, but not `chrome.*`) |
 | `src/mtggoldfish/boris_goldfish.css` | `dist/src/mtggoldfish/boris_goldfish.css` | CSS injected on mtggoldfish.com |
 | `src/cardmarket/boris_mkm.css` | `dist/src/cardmarket/boris_mkm.css` | CSS injected on cardmarket.com |
@@ -62,7 +62,7 @@ Each content script has its own `CLAUDE.md` with routing, DOM quirks and convent
 
 Both sites share the Scryfall layer; keep site-specific code out of it and diverge only when needed.
 
-- `src/common/scryfall.ts` — raw API (no key; declared in `host_permissions`). Every request goes through a rate gate: 2 req/s for `/cards/search`, `/cards/named`, `/cards/collection`, 10 req/s elsewhere (a 429 locks the client out for 30 s). `fetch_collection()` batches 75 identifiers per call; `get_cheapest_many(names)` gets the cheapest EUR printing of many cards with one `prefer:eur-low` search per 40 names; `find_by_name()` prefers a full-name match over a card-face match. Fetches return `null`/empty on error instead of throwing.
+- `src/common/scryfall.ts` — raw API (no key). Content scripts don't fetch Scryfall themselves: each request is sent as a `SCRYFALL_MESSAGE` to the service worker, which runs it through `src/common/scryfall_worker.ts`. That is why `api.scryfall.com` is in `host_permissions`, and it gives every tab one shared rate gate: 2 req/s for `/cards/search`, `/cards/named`, `/cards/collection`, 10 req/s elsewhere; on a 429 (a 30 s lockout) both gates pause for 30 s. The worker only fetches URLs under `SCRYFALL_API` and caches GET responses while it is alive. `fetch_collection()` batches 75 identifiers per call; `get_cheapest_many(names)` gets the cheapest EUR printing of many cards with one `prefer:eur-low` search per 40 names; `find_by_name()` prefers a full-name match over a card-face match. Fetches return `null`/empty on error instead of throwing.
 - `src/common/cards.ts` — cached lookups used by both sites: `cardmarketCard(id)`, `cheapestPrintings(names)`, `eurUnit(card)`. Failed lookups are evicted from the cache so they get retried.
 
 ### Typed storage module

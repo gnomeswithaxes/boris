@@ -1,3 +1,5 @@
+import type { ISavedUrl } from '../common/interfaces'
+import { setLocalSetting } from '../common/storage'
 import {
   boris_img_class,
   camera_class,
@@ -60,4 +62,11 @@ export function userFromPath(path: string): string | undefined {
 export function allPrintingsUrl(productUrl: string): string | undefined {
   const match = productUrl.match(/^(.*\/Magic)\/Products\/Singles\/[^/]+\/([^/?#]+)/)
   return match ? `${match[1]}/Cards/${match[2].replace(/-V\d+$/, '')}` : undefined
+}
+
+// The Shopping Wizard URL cache only grows; the oldest entries are dropped past this size.
+const MAX_SAVED_URLS = 5000
+
+export function saveUrlCache(urls: ISavedUrl[]): Promise<void> {
+  return setLocalSetting('urls', urls.slice(-MAX_SAVED_URLS))
 }

@@ -42,9 +42,11 @@ function downloadBlob(blob: Blob, title: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
-export async function saveWithFilePicker(blob: Blob, title: string) {
+// The picker needs a recent user gesture, so it must open before slow work; pass the content as a
+// promise and it is awaited only once the file has been chosen.
+export async function saveWithFilePicker(contents: Blob | Promise<Blob>, title: string) {
   if (!window.showSaveFilePicker) {
-    downloadBlob(blob, title)
+    downloadBlob(await contents, title)
     return
   }
   try {
@@ -57,6 +59,7 @@ export async function saveWithFilePicker(blob: Blob, title: string) {
         },
       ],
     })
+    const blob = await contents
     const writable = await handler.createWritable()
     await writable.write(blob)
     await writable.close()
