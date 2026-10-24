@@ -10,7 +10,7 @@ Guidance for `src/cardmarket/`. Shared Scryfall, storage and build notes live in
 |---|---|---|
 | any page | `images` | `Sitewide.addImages()` |
 | `/Magic/Users/` | | `Users.addUserToTitle()` + `Users.showTrend()` |
-| `/Products/Singles/` | | `Singles.addLinkToSingles()` + `addCheckboxes()` |
+| `/Products/Singles/` | | `Singles.addLinkToSingles()` + `addCheckboxes()` + `addScryfallButton()` |
 | `/Cards/` | | `Singles.addLinkToSingles()` |
 | `ShoppingWizard/Results` | | `Singles.addLinkToSingles()` |
 | `/Magic/Wants/…ShoppingWizard/Results` | `shoppingWizard` | `ShoppingWizard.addDisclaimer()` + `addLinkToCards()` |

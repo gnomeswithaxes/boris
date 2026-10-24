@@ -114,3 +114,19 @@ span.boris-image > img {
     stroke-linecap: round;
     stroke-linejoin: round;
 }
+
+.shariff li.boris-scryfall {
+    overflow: visible;
+}
+
+.boris-scryfall > a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #2b253a;
+}
+
+.boris-scryfall img {
+    width: 22px;
+    height: 22px;
+}

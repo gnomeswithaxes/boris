@@ -2,6 +2,8 @@ import { sleep } from '../../common/utilities'
 import { getSyncSetting, setSyncSetting } from '../../common/storage'
 import { parsePPU, parsePrice } from '../utilities'
 import { divider, iconLink, storefrontIcon } from '../icons'
+import { cardmarketCard } from '../../common/cards'
+import scryfallLogo from '../assets/scryfall.svg?raw'
 
 export function addLinkToSingles(): void {
   for (const user of document.getElementsByClassName('seller-name')) {
@@ -11,6 +13,37 @@ export function addLinkToSingles(): void {
     link.parentElement.classList.add('boris-seller')
     link.before(divider(), iconLink(`${link.href}/Offers/Singles`, 'Go to Singles', storefrontIcon()), divider())
   }
+}
+
+export async function addScryfallButton(): Promise<void> {
+  const productId = document.querySelector<HTMLInputElement>('input[name="idProduct"]')?.value
+  if (!productId) return
+
+  const card = await cardmarketCard(productId)
+  if (!card) return
+
+  // The page has one share bar per breakpoint/tab; only one is visible at a time.
+  for (const facebook of document.querySelectorAll('.shariff-button.facebook')) {
+    facebook.before(scryfallButton(card.scryfall_uri.split('?')[0]))
+  }
+}
+
+function scryfallButton(href: string): HTMLLIElement {
+  const link = document.createElement('a')
+  link.href = href
+  link.target = '_blank'
+  link.dataset.borisTip = 'Open in Scryfall'
+  link.dataset.borisTipFeature = ''
+  link.setAttribute('aria-label', 'Open in Scryfall')
+  const logo = document.createElement('img')
+  logo.src = `data:image/svg+xml,${encodeURIComponent(scryfallLogo)}`
+  logo.alt = ''
+  link.append(logo)
+
+  const button = document.createElement('li')
+  button.className = 'shariff-button boris-scryfall'
+  button.append(link)
+  return button
 }
 
 export async function addCheckboxes(): Promise<void> {

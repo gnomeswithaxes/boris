@@ -1,5 +1,5 @@
 import { addUserToTitle, showTrend } from "./pages/Users";
-import { addCheckboxes, addLinkToSingles } from "./pages/Singles";
+import { addCheckboxes, addLinkToSingles, addScryfallButton } from "./pages/Singles";
 import { addDisclaimer, addLinkToCards } from "./pages/ShoppingWizard";
 import { addPrintListButton, saveAllUrls } from "./pages/Wants";
 import { addImages } from "./pages/Sitewide";
@@ -16,7 +16,7 @@ interface Route {
 const routes: Route[] = [
     { match: /./, setting: "images", run: addImages },
     { match: /\/Magic\/Users\//, run: () => { addUserToTitle(); showTrend(); } },
-    { match: /\/Products\/Singles\//, run: () => { addLinkToSingles(); addCheckboxes(); } },
+    { match: /\/Products\/Singles\//, run: () => { addLinkToSingles(); addCheckboxes(); addScryfallButton(); } },
     { match: /\/Cards\//, run: addLinkToSingles },
     { match: /ShoppingWizard\/Results/, run: addLinkToSingles },
     { match: /\/Magic\/Wants\/.*ShoppingWizard\/Results/, setting: "shoppingWizard", run: () => { addDisclaimer(); addLinkToCards(); } },

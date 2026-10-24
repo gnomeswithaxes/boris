@@ -28,6 +28,11 @@
     transition: opacity 0.1s;
 }
 
+[data-boris-tip][data-boris-tip-feature]::after {
+    padding-right: 24px;
+    background: var(--boris-tip-bg) url('./assets/boris32.png') no-repeat right 5px center / 14px 14px;
+}
+
 [data-boris-tip][data-boris-tip-align="start"]::after {
     right: auto;
     left: 0;
@@ -35,5 +40,5 @@
 
 [data-boris-tip]:hover::after {
     opacity: 1;
-    transition-delay: 0.15s;
+    transition-delay: 0.3s;
 }

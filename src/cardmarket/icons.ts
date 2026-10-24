@@ -26,6 +26,7 @@ export function iconLink(href: string, tip: string, svg: SVGSVGElement): HTMLAnc
   link.target = '_blank'
   link.dataset.borisTip = tip
   link.dataset.borisTipAlign = 'start'
+  link.dataset.borisTipFeature = ''
   link.setAttribute('aria-label', tip)
   link.append(svg)
   return link
