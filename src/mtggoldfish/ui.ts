@@ -33,11 +33,12 @@ function segmented(label: string, ...buttons: HTMLButtonElement[]): HTMLElement 
 const formatEur = (value: number) =>
   value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-function eurElement(value: number | null, url: string | null, className: string): HTMLElement {
+function eurElement(unit: number | null, amount: number, url: string | null, className: string): HTMLElement {
   const node = url ? element('a') : element('span')
   if (node instanceof HTMLAnchorElement && url) node.href = url
-  node.className = value === null ? `${className} boris-na` : className
-  node.textContent = `€\u00a0${value === null ? 'n/a' : formatEur(value)}`
+  node.className = unit === null ? `${className} boris-na` : className
+  node.textContent = `€\u00a0${unit === null ? 'n/a' : formatEur(unit * amount)}`
+  if (unit !== null) node.dataset.borisTip = `${amount} × €\u00a0${formatEur(unit)}`
   return node
 }
 
@@ -51,7 +52,7 @@ export function ensureToolbar(scope: HTMLElement, table: HTMLTableElement): bool
   const favorite = actionButton('☆ Favorite', 'favorite')
   favorite.hidden = true
   nav.append(
-    segmented('Currency', actionButton('€ EUR', 'eur'), actionButton('$ USD', 'usd')),
+    segmented('Currency', actionButton('$ USD', 'usd'), actionButton('€ EUR', 'eur')),
     segmented('Printing', actionButton('Exact', 'exact'), actionButton('Cheapest', 'cheapest')),
     element('span', 'boris-separator'),
     actionButton('Copy', 'copy'),
@@ -75,8 +76,11 @@ function syncToggles(scope: HTMLElement): void {
     exact: !scope.classList.contains(SHOW_CHEAPEST),
     cheapest: scope.classList.contains(SHOW_CHEAPEST),
   }
-  scope.querySelectorAll<HTMLElement>('.boris-segmented [data-boris-action]').forEach(button => {
-    button.setAttribute('aria-pressed', String(pressed[button.dataset.borisAction!]))
+  const usd = scope.classList.contains(SHOW_USD)
+  scope.querySelectorAll<HTMLButtonElement>('.boris-segmented [data-boris-action]').forEach(button => {
+    const action = button.dataset.borisAction!
+    button.setAttribute('aria-pressed', String(pressed[action]))
+    if (action === 'exact' || action === 'cheapest') button.disabled = usd || 'loading' in button.dataset
   })
 }
 
@@ -103,7 +107,7 @@ export function renderPrices(rows: DeckRow[], prices: PriceInfo[]): number {
 
     cell.querySelector('.boris-exact')?.remove()
     cell.classList.add('boris-price-cell')
-    const eur = eurElement(value, url, 'boris-eur boris-exact')
+    const eur = eurElement(unit, row.amount, url, 'boris-eur boris-exact')
     const usd = cell.querySelector('.deck-preview-price-value')
     if (usd) usd.after(eur)
     else cell.append(eur)
@@ -122,7 +126,7 @@ export function renderCheapest(rows: DeckRow[], cards: Array<IScryfallCard | nul
 
     cell.querySelector('.boris-cheap')?.remove()
     cell.classList.add('boris-price-cell')
-    const eur = eurElement(value, cards[i]?.scryfall_uri ?? null, 'boris-eur boris-cheap')
+    const eur = eurElement(unit, row.amount, cards[i]?.scryfall_uri ?? null, 'boris-eur boris-cheap')
     const exact = cell.querySelector('.boris-exact')
     if (exact) exact.after(eur)
     else cell.append(eur)
@@ -150,8 +154,10 @@ export function setTotal(scope: HTMLElement, kind: 'price' | 'cheapest', total: 
 export function setCheapestLoading(scope: HTMLElement, loading: boolean): void {
   const button = scope.querySelector<HTMLButtonElement>('.boris-nav [data-boris-action="cheapest"]')
   if (!button) return
-  button.disabled = loading
+  if (loading) button.dataset.loading = ''
+  else delete button.dataset.loading
   button.textContent = loading ? 'Loading…' : 'Cheapest'
+  syncToggles(scope)
 }
 
 function favoriteItem(deck: IFavoriteDeck): HTMLElement {
