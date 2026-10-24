@@ -42,3 +42,15 @@ export function replaceCamera(span: Element, src: string): void {
   span.appendChild(img)
   span.getElementsByClassName(camera_icon)[0]?.remove()
 }
+
+export function userFromPath(path: string): string | undefined {
+  const parts = path.split('/')
+  const user = parts.indexOf('Users') >= 0 ? parts[parts.indexOf('Users') + 1] : undefined
+  return user ? decodeURIComponent(user) : undefined
+}
+
+// The Cards page lists every printing; its slug is the product's without the "-V2" version suffix.
+export function allPrintingsUrl(productUrl: string): string | undefined {
+  const match = productUrl.match(/^(.*\/Magic)\/Products\/Singles\/[^/]+\/([^/?#]+)/)
+  return match ? `${match[1]}/Cards/${match[2].replace(/-V\d+$/, '')}` : undefined
+}

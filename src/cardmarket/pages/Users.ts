@@ -1,16 +1,14 @@
 import { cardmarketCard, cheapestPrintings, eurUnit } from '../../common/cards'
 import type { IScryfallCard } from '../../common/interfaces'
 import { fetch_single, SCRYFALL_CONCURRENCY } from '../../common/scryfall'
-import { get_mkm_id, parsePPU, parsePrice } from '../utilities'
+import { get_mkm_id, parsePPU, parsePrice, userFromPath } from '../utilities'
 import { title_attribute } from '../page_elements'
 import { mapPool } from '../../common/utilities'
 
 export function addUserToTitle(): void {
-  const parts = window.location.pathname.split('/')
-  const user = parts[parts.indexOf('Users') + 1]
-  if (!user) return
+  const name = userFromPath(window.location.pathname)
+  if (!name) return
 
-  const name = decodeURIComponent(user)
   if (!document.title.startsWith(name)) {
     document.title = `${name} - ${document.title}`
   }

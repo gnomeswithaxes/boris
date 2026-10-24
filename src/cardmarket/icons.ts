@@ -37,3 +37,11 @@ export function divider(): HTMLSpanElement {
   span.className = 'boris-divider'
   return span
 }
+
+// Puts an "All printings" icon link and a divider before a card name, on one line.
+export function prependAllPrintings(nameElem: Element, href: string): void {
+  const wrapper = document.createElement('div')
+  wrapper.className = 'boris-card-links'
+  nameElem.replaceWith(wrapper)
+  wrapper.append(iconLink(href, 'All printings', printingsIcon()), divider(), nameElem)
+}

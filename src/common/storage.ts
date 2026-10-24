@@ -13,6 +13,10 @@ export interface LocalStorage {
   urls: ISavedUrl[]
 }
 
+export interface SessionStorage {
+  cartSellers: string[]
+}
+
 const syncDefaults: SyncStorage = {
   auto: false,
   printVersion: false,
@@ -56,4 +60,12 @@ export function getLocalSetting<K extends keyof LocalStorage>(key: K): Promise<L
 
 export function setLocalSetting<K extends keyof LocalStorage>(key: K, value: LocalStorage[K]): Promise<void> {
   return chrome.storage.local.set({ [key]: value })
+}
+
+export function getSessionSetting<K extends keyof SessionStorage>(key: K): Promise<SessionStorage[K] | undefined> {
+  return chrome.storage.session.get(key).then(result => result[key] as SessionStorage[K] | undefined)
+}
+
+export function setSessionSetting<K extends keyof SessionStorage>(key: K, value: SessionStorage[K]): Promise<void> {
+  return chrome.storage.session.set({ [key]: value })
 }

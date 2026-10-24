@@ -30,6 +30,10 @@
       "css": ["src/common/boris_tooltip.css", "src/cardmarket/boris_mkm.css"]
     }
   ],
+  "background": {
+    "service_worker": "src/background.ts",
+    "type": "module"
+  },
   "permissions": ["storage", "unlimitedStorage"],
   "host_permissions": ["https://api.scryfall.com/*"],
   "icons": {

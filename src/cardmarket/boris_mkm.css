@@ -130,3 +130,13 @@ span.boris-image > img {
     width: 22px;
     height: 22px;
 }
+
+/* Offer rows are striped Bootstrap tables: every cell paints its background as an inset
+   box-shadow of --bs-table-bg-state, so the tint goes through that variable. */
+.boris-in-cart {
+    --bs-table-bg-state: rgba(var(--bs-success-rgb), .18);
+}
+
+.boris-in-cart > .col-sellerProductInfo {
+    box-shadow: inset 3px 0 0 var(--bs-success), inset 0 0 0 9999px var(--bs-table-bg-state);
+}

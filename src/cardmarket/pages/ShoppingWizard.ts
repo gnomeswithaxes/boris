@@ -2,10 +2,10 @@ import type { ISavedUrl } from '../../common/interfaces'
 import { cardmarketCard } from '../../common/cards'
 import { fetch_single, SCRYFALL_CONCURRENCY } from '../../common/scryfall'
 import { getLocalSetting, setLocalSetting } from '../../common/storage'
-import { get_mkm_id, get_mkm_version } from '../utilities'
+import { allPrintingsUrl, get_mkm_id, get_mkm_version } from '../utilities'
 import { title_attribute } from '../page_elements'
 import { mapPool } from '../../common/utilities'
-import { divider, iconLink, printingsIcon } from '../icons'
+import { prependAllPrintings } from '../icons'
 import type { IScryfallCard } from '../../common/interfaces'
 
 export function addDisclaimer(): void {
@@ -39,13 +39,13 @@ export async function addLinkToCards(): Promise<void> {
     const url = saved?.url ?? await format_url(card, cardVersion, setTitle)
 
     if (url) {
-      showCardLinks(cardElem, card.name, url, card.purchase_uris?.cardmarket)
+      showCardLinks(cardElem, card.name, url, allPrintingsUrl(url))
       return saved ? null : { name: card.name, mkm_id: cardId, url }
     }
 
     const fallback = await fetch_single(cardElem.textContent?.replace(/\(V\.\d+\)/g, '') ?? '')
-    if (fallback?.purchase_uris?.cardmarket) {
-      showCardLinks(cardElem, fallback.name, null, fallback.purchase_uris.cardmarket)
+    if (fallback) {
+      showCardLinks(cardElem, fallback.name, fallback.purchase_uris?.cardmarket ?? null, `https://www.cardmarket.com/Magic/Cards/${slug(fallback.name)}`)
     }
     return null
   })
@@ -62,12 +62,12 @@ function showCardLinks(cardElem: Element, name: string, url: string | null, allP
   }
   nameElem.textContent = name
   nameElem.title = name
+  cardElem.replaceChildren(nameElem)
+  if (allPrintings) prependAllPrintings(nameElem, allPrintings)
+}
 
-  const wrapper = document.createElement('div')
-  wrapper.className = 'boris-card-links'
-  if (allPrintings) wrapper.append(iconLink(allPrintings, 'All printings', printingsIcon()), divider())
-  wrapper.append(nameElem)
-  cardElem.replaceChildren(wrapper)
+function slug(text: string): string {
+  return text.replace(/ \/\/ /g, '-').replace(/[:,]/g, '').replace(/\s+/g, '-')
 }
 
 async function format_url(card: IScryfallCard, version: string, setTitle: string): Promise<string> {
@@ -89,12 +89,7 @@ async function format_url(card: IScryfallCard, version: string, setTitle: string
   }
 
   set = set.replace(' Set ', ' ')
-  const path = (set + '/' + name)
-    .replace(/ \/\/ /g, '-')
-    .replace(/:/g, '')
-    .replace(/,/g, '')
-    .replace(/\s+/g, '-')
-  const url = `https://www.cardmarket.com/Magic/Products/Singles/${path}`
+  const url = `https://www.cardmarket.com/Magic/Products/Singles/${slug(set)}/${slug(name)}`
 
   if (!url.includes("'")) return url
 

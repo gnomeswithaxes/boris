@@ -83,6 +83,7 @@ Ambiente rilevato: Xcode 27.1, `xcrun safari-web-extension-converter` presente.
 
 ### 5. ✅ RISOLTO — Background service worker `type: "module"` ma file vuoto
 - **Stato:** il file `src/background.ts` e la chiave `background` del manifest sono stati rimossi. Il resto di questa sezione è mantenuto come storico.
+- **Aggiornamento:** il background è tornato, non più vuoto: chiama `chrome.storage.session.setAccessLevel()` per l'evidenziazione dei venditori nel carrello su Cardmarket. Su Safari vanno verificati il service worker `type: "module"` (o `"scripts"`) e il supporto a `storage.session.setAccessLevel`; senza, l'evidenziazione semplicemente non compare.
 - **Dove:** `manifest.json:28-29`; `src/background.ts` (30 byte in `dist/src/background.js`).
 - **Perché:**
   - **[V-codice]** Il background è vuoto, quindi non porta funzionalità.

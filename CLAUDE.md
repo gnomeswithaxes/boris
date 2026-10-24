@@ -34,6 +34,7 @@ Vite + `vite-plugin-web-extension`. The plugin reads `manifest.json` at the proj
 | `src/options.html` + `src/options.tsx` | `dist/src/options.html` | React options page — same settings, standalone view |
 | `src/mtggoldfish/content_script.ts` | `dist/src/mtggoldfish/content_script.js` | Injected on mtggoldfish.com |
 | `src/cardmarket/content_script.ts` | `dist/src/cardmarket/content_script.js` | Injected on cardmarket.com |
+| `src/background.ts` | `dist/src/background.js` | Service worker; only grants content scripts access to `chrome.storage.session` |
 | `src/cardmarket/masonry.ts` | `dist/src/cardmarket/masonry.js` | Injected on cardmarket.com in the page's `MAIN` world (can see the page's globals, but not `chrome.*`) |
 | `src/mtggoldfish/boris_goldfish.css` | `dist/src/mtggoldfish/boris_goldfish.css` | CSS injected on mtggoldfish.com |
 | `src/cardmarket/boris_mkm.css` | `dist/src/cardmarket/boris_mkm.css` | CSS injected on cardmarket.com |
@@ -66,7 +67,7 @@ Both sites share the Scryfall layer; keep site-specific code out of it and diver
 
 ### Typed storage module
 
-All `chrome.storage` access should go through `src/common/storage.ts`, which also applies the defaults below when a key is unset. Never use raw `chrome.storage.sync.get/set` elsewhere — raw reads return `undefined` for unset keys and silently ignore the defaults. New storage keys must be added to the `SyncStorage`/`LocalStorage` interfaces and `syncDefaults` in that file.
+All `chrome.storage` access should go through `src/common/storage.ts`, which also applies the defaults below when a key is unset. Never use raw `chrome.storage.sync.get/set` elsewhere — raw reads return `undefined` for unset keys and silently ignore the defaults. New storage keys must be added to the `SyncStorage`/`LocalStorage`/`SessionStorage` interfaces and `syncDefaults` in that file.
 
 ```ts
 getSyncSetting('auto')           // → Promise<boolean>
@@ -74,6 +75,7 @@ setSyncSetting('images', true)   // → Promise<void>
 getSyncSettings(['auto', 'images'])  // → Promise<Pick<SyncStorage, 'auto' | 'images'>>
 getLocalSetting('urls')          // → Promise<ISavedUrl[] | undefined>
 setLocalSetting('urls', list)    // → Promise<void>
+getSessionSetting('cartSellers') // → Promise<string[] | undefined>
 ```
 
 ### Chrome storage keys
@@ -87,3 +89,4 @@ setLocalSetting('urls', list)    // → Promise<void>
 | `favorite_decks` | sync | `IFavoriteDeck[]` | [] — favorite MTGGoldfish deck URLs |
 | `reference` | sync | number | -1 — reference price on Singles pages (-1 = "From", no recolouring; 0–3 = trend and 30/7/1-day averages) |
 | `urls` | local | `ISavedUrl[]` | — URL cache for Shopping Wizard feature |
+| `cartSellers` | session | `string[]` | — Cardmarket usernames in the cart, saved on the cart page; `chrome.storage.session` is cleared when the browser closes, and `src/background.ts` opens it to content scripts |
