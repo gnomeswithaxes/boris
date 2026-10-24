@@ -34,6 +34,7 @@ Vite + `vite-plugin-web-extension`. The plugin reads `manifest.json` at the proj
 | `src/options.html` + `src/options.tsx` | `dist/src/options.html` | React options page — same settings, standalone view |
 | `src/mtggoldfish/content_script.ts` | `dist/src/mtggoldfish/content_script.js` | Injected on mtggoldfish.com |
 | `src/cardmarket/content_script.ts` | `dist/src/cardmarket/content_script.js` | Injected on cardmarket.com |
+| `src/mtggoldfish/boris_goldfish.css` | `dist/src/mtggoldfish/boris_goldfish.css` | CSS injected on mtggoldfish.com |
 | `src/cardmarket/boris_mkm.css` | `dist/src/cardmarket/boris_mkm.css` | CSS injected on cardmarket.com |
 
 Static assets in `public/` are copied to `dist/` by Vite automatically. Icons live in `public/images/` and are referenced from `manifest.json` as `images/boris*.png`.
@@ -44,28 +45,15 @@ Versioning: `package.json` is the single source of the extension version — `vi
 
 - `Boris on Safari/` and `Boris the Italian Goldfish (TS)/` are untracked local Xcode/Safari Web Extension wrappers, not part of the Vite build. They are outdated; see `SAFARI_AUDIT.md` before starting the Safari port.
 - `boris.zip` (tracked) is the release bundle of `dist/` that the README points users to.
-- `.github/workflows/build.yml` is stale: it targets the `master` branch (the repo uses `main`) and Node 14/15, which is too old for Vite 5.
+- `.github/workflows/build.yml` is stale: it targets the `master` branch (the repo uses `main`) and Node 14/15, which is too old for the current Vite.
 
 ### React UI layer
 
 The `Options` component (`src/OptionsPanel.tsx`) is shared between the popup and the options page. It is imported by both `popup.tsx` and `options.tsx`. **Do not put `ReactDOM` render calls in `OptionsPanel.tsx`** — only in the `*.tsx` entry point files — to avoid double-rendering when imported.
 
-### Cardmarket content script routing
+### Site-specific guidance
 
-`src/cardmarket/content_script.ts` checks `window.location.pathname` with a series of independent `if`s (more than one can match the same page) and calls into page modules under `src/cardmarket/pages/`:
-
-| Path match | Calls |
-|---|---|
-| any page **except** `ShoppingWizard/Results`, `Magic/Orders`, `Magic/ShoppingCart` — only if `images` is on | `Sitewide.addImages()` |
-| `Magic/Users` | `Users.showTrend()` |
-| `Products/Singles/` | `Singles.addLinkToSingles()` + `addCheckboxes()` |
-| `Cards/` | `Singles.addLinkToSingles()` |
-| `ShoppingWizard/Results` | `addLinkToSingles()`; plus `ShoppingWizard.addDisclaimer()` / `addLinkToCards()` if under `/Magic/Wants` and `shoppingWizard` is on |
-| `/Wants/\d+` | `Wants.addPrintListButton()`; plus `saveAllUrls()` under `/Magic/Wants` |
-
-The Shopping Wizard feature is a two-step flow: `Wants.saveAllUrls()` caches card URLs into local storage (`urls`), and `ShoppingWizard.addLinkToCards()` reads them back on the results page.
-
-CSS class name constants for the Cardmarket DOM live in `src/cardmarket/page_elements.ts` — update these when Cardmarket's markup changes.
+Each content script has its own `CLAUDE.md` with routing, DOM quirks and conventions: `src/cardmarket/CLAUDE.md` and `src/mtggoldfish/CLAUDE.md`. Code used by both sites (Scryfall, storage, pinned lists, file saving) lives in `src/common/`.
 
 ### Scryfall integration
 
