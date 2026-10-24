@@ -1,7 +1,7 @@
 import { cardmarketCard, cheapestPrintings, eurUnit } from '../../common/cards'
 import type { IScryfallCard } from '../../common/interfaces'
 import { fetch_single, SCRYFALL_CONCURRENCY } from '../../common/scryfall'
-import { get_mkm_id, parsePPU, parsePrice, userFromPath } from '../utilities'
+import { get_mkm_id, parsePPU, parsePrice, priceClass, userFromPath } from '../utilities'
 import { title_attribute } from '../page_elements'
 import { mapPool } from '../../common/utilities'
 
@@ -59,8 +59,8 @@ function annotateRow(row: Element, exact: IScryfallCard | null, cheapest: IScryf
   const cheapestPrice = eurUnit(cheapest) ?? 0
   const exactPrice = eurUnit(exact) ?? 0
 
-  const cheapestClass = cheapestPrice ? class_from_price(originalPrice, cheapestPrice, ppu) : ''
-  const exactClass = exactPrice ? class_from_price(originalPrice, exactPrice, ppu) : ''
+  const cheapestClass = cheapestPrice ? priceClass(originalPrice, ppu, cheapestPrice) : ''
+  const exactClass = exactPrice ? priceClass(originalPrice, ppu, exactPrice) : ''
 
   const isFoil = row.querySelectorAll(`[${title_attribute}="Foil"]`).length > 0
   const mainClass = isFoil ? 'boris-foil' : exactClass || cheapestClass
@@ -127,8 +127,4 @@ function trendLegend(): HTMLDivElement {
   const legend = document.createElement('div')
   legend.append(document.createElement('hr'), text)
   return legend
-}
-
-function class_from_price(oldPrice: number, newPrice: number, ppu: number): string {
-  return (ppu > 0 && ppu > newPrice) || oldPrice > newPrice ? 'boris-higher' : 'boris-lower'
 }

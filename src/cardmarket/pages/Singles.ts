@@ -1,6 +1,5 @@
-import { sleep } from '../../common/utilities'
 import { getSyncSetting, setSyncSetting } from '../../common/storage'
-import { parsePPU, parsePrice } from '../utilities'
+import { parsePPU, parsePrice, priceClass } from '../utilities'
 import { divider, iconLink, storefrontIcon } from '../icons'
 import { cardmarketCard } from '../../common/cards'
 import scryfallLogo from '../assets/scryfall.svg?raw'
@@ -87,9 +86,9 @@ export async function addCheckboxes(): Promise<void> {
     })
   }
 
-  document
-    .getElementById('loadMoreButton')
-    ?.addEventListener('click', () => sleep(3000).then(() => colorPrices(prices[reference])))
+  // "Load more" appends offer rows without a page load.
+  const table = document.querySelector('[id^=articleRow], [id^=stockRow]')?.parentElement
+  if (table) new MutationObserver(() => colorPrices(prices[reference])).observe(table, { childList: true })
 }
 
 function colorPrices(referencePrice: number | undefined): void {
@@ -111,7 +110,6 @@ function colorPrices(referencePrice: number | undefined): void {
 
     priceElem.classList.remove('color-primary')
     const price = parsePrice(priceElem.innerHTML.replace(' €', ''))
-    const isCheap = (ppu > 0 && ppu <= referencePrice) || price <= referencePrice
-    priceElem.classList.add(isCheap ? 'boris-lower' : 'boris-higher')
+    priceElem.classList.add(priceClass(price, ppu, referencePrice))
   }
 }

@@ -70,3 +70,8 @@ const MAX_SAVED_URLS = 5000
 export function saveUrlCache(urls: ISavedUrl[]): Promise<void> {
   return setLocalSetting('urls', urls.slice(-MAX_SAVED_URLS))
 }
+
+// A playset offer is priced for four copies; its per-unit price is the one to compare.
+export function priceClass(price: number, ppu: number, reference: number): 'boris-lower' | 'boris-higher' {
+  return (ppu > 0 ? ppu : price) <= reference ? 'boris-lower' : 'boris-higher'
+}
