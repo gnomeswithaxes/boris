@@ -21,7 +21,7 @@
       "css": ["src/common/boris_tooltip.css", "src/mtggoldfish/boris_goldfish.css"]
     },
     {
-      "matches": ["https://*.cardmarket.com/*"],
+      "matches": ["https://*.cardmarket.com/*/ShoppingWizard/Results*"],
       "js": ["src/cardmarket/masonry.ts"],
       "world": "MAIN"
     },

@@ -35,7 +35,7 @@ Vite + `vite-plugin-web-extension`. The plugin reads `manifest.json` at the proj
 | `src/mtggoldfish/content_script.ts` | `dist/src/mtggoldfish/content_script.js` | Injected on mtggoldfish.com |
 | `src/cardmarket/content_script.ts` | `dist/src/cardmarket/content_script.js` | Injected on cardmarket.com |
 | `src/background.ts` | `dist/src/background.js` | Service worker, driven by runtime messages: performs every Scryfall request (`scryfall_worker.ts`) and grants content scripts access to `chrome.storage.session`. `getSessionSetting`/`setSessionSetting` first message it (`SESSION_ACCESS_MESSAGE`), which wakes it and grants access, since it may not have run yet (e.g. after the extension is re-enabled) |
-| `src/cardmarket/masonry.ts` | `dist/src/cardmarket/masonry.js` | Injected on cardmarket.com in the page's `MAIN` world (can see the page's globals, but not `chrome.*`) |
+| `src/cardmarket/masonry.ts` | `dist/src/cardmarket/masonry.js` | Injected on Cardmarket's Shopping Wizard results, in the page's `MAIN` world (can see the page's globals, but not `chrome.*`) |
 | `src/mtggoldfish/boris_goldfish.css` | `dist/src/mtggoldfish/boris_goldfish.css` | CSS injected on mtggoldfish.com |
 | `src/cardmarket/boris_mkm.css` | `dist/src/cardmarket/boris_mkm.css` | CSS injected on cardmarket.com |
 | `src/common/boris_tooltip.css` | `dist/src/common/boris_tooltip.css` | Shared tooltip injected on both sites: set `data-boris-tip="text"` on an element (`data-boris-tip-align="start"` to anchor it left; `data-boris-tip-feature` adds the Boris fish, for tooltips that explain a Boris feature rather than show data) |
