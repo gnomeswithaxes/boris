@@ -47,8 +47,8 @@ Versioning: `package.json` is the single source of the extension version — `vi
 ### Repo layout notes
 
 - `Boris on Safari/` and `Boris the Italian Goldfish (TS)/` are untracked local Xcode/Safari Web Extension wrappers, not part of the Vite build. They are outdated; see `SAFARI_AUDIT.md` before starting the Safari port.
-- `boris.zip` (tracked) is the release bundle of `dist/` that the README points users to.
-- `.github/workflows/build.yml` is stale: it targets the `master` branch (the repo uses `main`) and Node 14/15, which is too old for the current Vite.
+- `.github/workflows/ci.yml` lints, type-checks and builds every push to `main` and every PR, and keeps `dist/` as a downloadable artifact for 30 days.
+- `.github/workflows/release.yml` runs on a `v*` tag (pushed by `npm version …` + `git push --follow-tags`): it builds, zips the contents of `dist/` into `boris.zip` (manifest at the zip root) and attaches it to a **draft** GitHub Release. Drafts are private; the maintainer decides which ones to publish. `boris.zip` is not tracked in the repo.
 
 ### React UI layer
 
