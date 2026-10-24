@@ -30,7 +30,7 @@ Vite + `vite-plugin-web-extension`. The plugin reads `manifest.json` at the proj
 
 | Source | Built output | Purpose |
 |---|---|---|
-| `src/popup.html` + `src/popup.tsx` | `dist/src/popup.html` | React popup — pinned MTGGoldfish deck lists + settings |
+| `src/popup.html` + `src/popup.tsx` | `dist/src/popup.html` | React popup — favorite MTGGoldfish decks + settings |
 | `src/options.html` + `src/options.tsx` | `dist/src/options.html` | React options page — same settings, standalone view |
 | `src/mtggoldfish/content_script.ts` | `dist/src/mtggoldfish/content_script.js` | Injected on mtggoldfish.com |
 | `src/cardmarket/content_script.ts` | `dist/src/cardmarket/content_script.js` | Injected on cardmarket.com |
@@ -53,7 +53,7 @@ The `Options` component (`src/OptionsPanel.tsx`) is shared between the popup and
 
 ### Site-specific guidance
 
-Each content script has its own `CLAUDE.md` with routing, DOM quirks and conventions: `src/cardmarket/CLAUDE.md` and `src/mtggoldfish/CLAUDE.md`. Code used by both sites (Scryfall, storage, pinned lists, file saving) lives in `src/common/`.
+Each content script has its own `CLAUDE.md` with routing, DOM quirks and conventions: `src/cardmarket/CLAUDE.md` and `src/mtggoldfish/CLAUDE.md`. Code used by both sites (Scryfall, storage, favorite decks, file saving) lives in `src/common/`.
 
 ### Scryfall integration
 
@@ -82,6 +82,6 @@ setLocalSetting('urls', list)    // → Promise<void>
 | `images` | sync | boolean | true — show card art on Cardmarket |
 | `printVersion` | sync | boolean | false — use localised names in want-list export |
 | `shoppingWizard` | sync | boolean | false — experimental Shopping Wizard links |
-| `pinned_lists` | sync | `IPinnedList[]` | [] — saved MTGGoldfish deck URLs |
+| `favorite_decks` | sync | `IFavoriteDeck[]` | [] — favorite MTGGoldfish deck URLs |
 | `reference` | sync | number | 1 — reference price index on Singles pages |
 | `urls` | local | `ISavedUrl[]` | — URL cache for Shopping Wizard feature |

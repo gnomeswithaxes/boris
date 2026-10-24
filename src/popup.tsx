@@ -1,19 +1,19 @@
 import { StrictMode, useState, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Options } from './OptionsPanel'
-import { getPinnedLists, removePinnedList } from './common/pinned'
-import type { IPinnedList } from './common/interfaces'
+import { getFavorites, removeFavorite } from './common/favorites'
+import type { IFavoriteDeck } from './common/interfaces'
 
 const Popup = () => {
-  const [pinnedLists, setPinnedLists] = useState<IPinnedList[]>([])
+  const [favorites, setFavorites] = useState<IFavoriteDeck[]>([])
 
   useEffect(() => {
-    getPinnedLists().then(setPinnedLists)
+    getFavorites().then(setFavorites)
   }, [])
 
   const handleRemove = (url: string) => {
-    setPinnedLists(lists => lists.filter(list => list.url !== url))
-    removePinnedList(url)
+    setFavorites(decks => decks.filter(deck => deck.url !== url))
+    removeFavorite(url)
   }
 
   return (
@@ -21,18 +21,18 @@ const Popup = () => {
       <h1 style={{ color: 'rgb(240, 173, 78)' }}>Boris — <i>the Italian Goldfish</i></h1>
       <Options />
       <hr />
-      <h2>Saved Deck Lists:</h2>
+      <h2>Favorite Decks:</h2>
       <h3>
-        {pinnedLists.length ? (
+        {favorites.length ? (
           <ul>
             <base target="_blank" />
-            {pinnedLists.map(list => (
-              <li key={list.url}>
-                <a style={{ color: 'black', textDecoration: 'none' }} href={list.url}>
-                  {list.format && <><strong>{list.format}</strong> | </>}
-                  {list.title}
+            {favorites.map(deck => (
+              <li key={deck.url}>
+                <a style={{ color: 'black', textDecoration: 'none' }} href={deck.url}>
+                  {deck.format && <><strong>{deck.format}</strong> | </>}
+                  {deck.title}
                 </a>
-                <button type="button" style={{ color: 'red' }} onClick={() => handleRemove(list.url)}>
+                <button type="button" style={{ color: 'red' }} onClick={() => handleRemove(deck.url)}>
                   X
                 </button>
               </li>
@@ -40,7 +40,7 @@ const Popup = () => {
           </ul>
         ) : (
           <div>
-            <i>Pin lists on</i> MTGGoldfish.com <i>and they will appear here</i>
+            <i>Add decks to your favorites on</i> MTGGoldfish.com <i>and they will appear here</i>
           </div>
         )}
       </h3>

@@ -1,91 +1,150 @@
-.boris-price:before {
-    content: "Boris";
+.boris-scope {
+    --boris-accent: #d9822b;
+    --boris-on-accent: #212529;
+    --boris-fill: #f0ad4e;
+    --boris-cheap: #1a7f37;
+    --boris-text: #303030;
+    --boris-border: #4f4f4f;
+    --boris-hover: rgba(0, 0, 0, 0.06);
+    --boris-muted: #6c757d;
 }
 
-.boris-price {
-    color: #f0ad4e;
-}
-
-.boris-cheapest:before {
-    content: "Cheapest";
-}
-
-.boris-cheapest,
-.boris-cheapest-eur {
-    color: darkviolet;
-}
-
-.boris-eur {
-    color: inherit;
-}
-
-.boris-na {
-    color: orange;
-}
-
-.boris-scope:not(.boris-show-usd) .boris-price-cell .deck-preview-price-value {
-    display: none;
-}
-
-.boris-show-usd .boris-eur {
-    display: none;
+[data-bs-theme="dark"] .boris-scope {
+    --boris-accent: #f0ad4e;
+    --boris-cheap: #5cb85c;
+    --boris-text: #e6e6e6;
+    --boris-border: #8a8a8a;
+    --boris-hover: rgba(255, 255, 255, 0.08);
+    --boris-muted: #a0a0a0;
 }
 
 .boris-nav {
-    justify-content: start;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0 6px;
 }
 
-.boris-nav .nav-item {
-    padding: 0.5em;
+.boris-btn,
+.boris-segmented > button {
+    padding: 5px 14px;
+    border: 1px solid var(--boris-border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--boris-text);
+    font: inherit;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: nowrap;
+    cursor: pointer;
 }
 
-.boris-nav .nav-link {
-    color: #333 !important;
+.boris-btn:hover,
+.boris-segmented > button:hover:not([aria-pressed="true"]) {
+    background: var(--boris-hover);
 }
 
-.boris-nav .btn-online {
-    color: #fff !important;
+.boris-btn:focus-visible,
+.boris-segmented > button:focus-visible {
+    outline: 2px solid var(--boris-accent);
+    outline-offset: 2px;
 }
 
-.boris-unpin {
-    color: red;
-    font-weight: bold;
-    margin-right: 0.5em;
+.boris-btn[aria-pressed="true"],
+.boris-segmented > button[aria-pressed="true"] {
+    background: var(--boris-fill);
+    border-color: var(--boris-fill);
+    color: var(--boris-on-accent);
+    font-weight: 700;
 }
 
-.boris-pinned-link {
+.boris-segmented {
+    display: inline-flex;
+    border: 1px solid var(--boris-border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.boris-segmented > button {
+    border: 0;
+    border-radius: 0;
+    padding: 5px 12px;
+}
+
+.boris-segmented > button + button {
+    border-left: 1px solid var(--boris-border);
+}
+
+.boris-segmented > button:disabled {
+    cursor: progress;
+    opacity: 0.7;
+}
+
+.boris-separator {
+    width: 1px;
+    align-self: stretch;
+    background: var(--boris-border);
+    opacity: 0.4;
+}
+
+.boris-favorites {
+    margin-left: auto;
+}
+
+.boris-favorite-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.boris-unfavorite {
+    padding: 0 0.3em;
+    border: 0;
+    background: transparent;
+    color: var(--boris-muted);
+    font-size: 1.2em;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.boris-unfavorite:hover {
+    color: #dc3545;
+}
+
+.boris-favorite-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.boris-total-price:before {
+    content: "Boris";
+}
+
+.boris-total-price {
+    color: var(--boris-accent);
+}
+
+.boris-total-cheapest:before {
+    content: "Cheapest";
+}
+
+.boris-total-cheapest,
+.boris-cheap {
+    color: var(--boris-cheap);
+}
+
+.boris-exact {
     color: inherit;
 }
 
-.boris-pinned .dropdown-item:hover,
-.boris-pinned .dropdown-item:focus {
-    background-color: #d6d6d6;
+.boris-eur.boris-na {
+    color: var(--boris-muted);
 }
 
-@media (prefers-color-scheme: dark) {
-    .boris-nav .nav-link {
-        color: #e0e0e0 !important;
-    }
-
-    .boris-nav .btn-online {
-        color: #fff !important;
-    }
-
-    .boris-nav .btn-online-muted {
-        color: #999 !important;
-    }
-
-    .boris-pinned .dropdown-menu {
-        background-color: #2d2d2d;
-        color: #fff;
-    }
-
-    .boris-pinned .dropdown-item {
-        color: #fff;
-    }
-
-    .boris-pinned .dropdown-item:hover,
-    .boris-pinned .dropdown-item:focus {
-        background-color: #444;
-    }
+.boris-scope:not(.boris-show-usd) .boris-price-cell .deck-preview-price-value,
+.boris-show-usd .boris-eur,
+.boris-scope:not(.boris-show-cheapest) .boris-cheap,
+.boris-show-cheapest .boris-price-cell:has(.boris-cheap) .boris-exact {
+    display: none;
 }

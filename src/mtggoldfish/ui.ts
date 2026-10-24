@@ -1,11 +1,12 @@
-import type { IPinnedList, IScryfallCard } from '../common/interfaces'
+import type { IFavoriteDeck, IScryfallCard } from '../common/interfaces'
 import type { DeckRow } from './deck'
 import { eurUnit } from '../common/cards'
 import type { PriceInfo } from './prices'
 
-export type Action = 'toggle' | 'cheapest' | 'copy' | 'save' | 'pin' | 'unpin'
+export type Action = 'eur' | 'usd' | 'exact' | 'cheapest' | 'copy' | 'save' | 'favorite' | 'unfavorite'
 
 const SHOW_USD = 'boris-show-usd'
+const SHOW_CHEAPEST = 'boris-show-cheapest'
 
 function element<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text = ''): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag)
@@ -14,18 +15,19 @@ function element<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', 
   return node
 }
 
-function actionLink(text: string, action: Action, className = 'nav-link'): HTMLAnchorElement {
-  const link = element('a', className, text)
-  link.href = '#'
-  link.setAttribute('role', 'button')
-  link.dataset.borisAction = action
-  return link
+function actionButton(text: string, action: Action, className = 'boris-btn'): HTMLButtonElement {
+  const button = element('button', className, text)
+  button.type = 'button'
+  button.dataset.borisAction = action
+  return button
 }
 
-function navButton(text: string, action: Action): HTMLLIElement {
-  const item = element('li', 'nav-item')
-  item.append(actionLink(text, action))
-  return item
+function segmented(label: string, ...buttons: HTMLButtonElement[]): HTMLElement {
+  const group = element('div', 'boris-segmented')
+  group.setAttribute('role', 'group')
+  group.setAttribute('aria-label', label)
+  group.append(...buttons)
+  return group
 }
 
 const formatEur = (value: number) =>
@@ -43,37 +45,52 @@ export function ensureToolbar(scope: HTMLElement, table: HTMLTableElement): bool
   scope.classList.add('boris-scope')
   if (scope.querySelector('.boris-nav')) return false
 
-  const nav = element('ul', 'nav nav-pills deck-type-menu boris-nav')
-  const pinned = element('li', 'dropdown nav-item boris-pinned')
-  pinned.hidden = true
+  const nav = element('div', 'boris-nav')
+  const favorites = element('div', 'dropdown boris-favorites')
+  favorites.hidden = true
+  const favorite = actionButton('☆ Favorite', 'favorite')
+  favorite.hidden = true
   nav.append(
-    navButton('Boris', 'toggle'),
-    navButton('Cheapest', 'cheapest'),
-    navButton('Copy', 'copy'),
-    navButton('Save as...', 'save'),
-    navButton('Pin', 'pin'),
-    pinned,
+    segmented('Currency', actionButton('€ EUR', 'eur'), actionButton('$ USD', 'usd')),
+    segmented('Printing', actionButton('Exact', 'exact'), actionButton('Cheapest', 'cheapest')),
+    element('span', 'boris-separator'),
+    actionButton('Copy', 'copy'),
+    actionButton('Save as…', 'save'),
+    favorite,
+    favorites,
   )
 
-  const menu = scope.querySelector('ul.deck-type-menu:not(.boris-nav)')
-  if (menu) menu.after(nav)
+  const toolbar = scope.querySelector('.deck-display-toolbar-primary') ?? scope.querySelector('ul.deck-type-menu')
+  if (toolbar) toolbar.after(nav)
   else table.before(nav)
 
-  syncToggle(scope)
+  syncToggles(scope)
   return true
 }
 
-function syncToggle(scope: HTMLElement): void {
-  const showingEur = !scope.classList.contains(SHOW_USD)
-  const toggle = scope.querySelector('.boris-nav [data-boris-action="toggle"]')
-  toggle?.classList.toggle('btn-online', showingEur)
-  toggle?.classList.toggle('btn-online-muted', !showingEur)
+function syncToggles(scope: HTMLElement): void {
+  const pressed: Record<string, boolean> = {
+    eur: !scope.classList.contains(SHOW_USD),
+    usd: scope.classList.contains(SHOW_USD),
+    exact: !scope.classList.contains(SHOW_CHEAPEST),
+    cheapest: scope.classList.contains(SHOW_CHEAPEST),
+  }
+  scope.querySelectorAll<HTMLElement>('.boris-segmented [data-boris-action]').forEach(button => {
+    button.setAttribute('aria-pressed', String(pressed[button.dataset.borisAction!]))
+  })
 }
 
-export function toggleCurrency(scope: HTMLElement): void {
-  scope.classList.toggle(SHOW_USD)
-  syncToggle(scope)
+export function showUsd(scope: HTMLElement, usd: boolean): void {
+  scope.classList.toggle(SHOW_USD, usd)
+  syncToggles(scope)
 }
+
+export function showCheapest(scope: HTMLElement, cheapest: boolean): void {
+  scope.classList.toggle(SHOW_CHEAPEST, cheapest)
+  syncToggles(scope)
+}
+
+export const wantsCheapest = (scope: HTMLElement) => scope.classList.contains(SHOW_CHEAPEST)
 
 export function renderPrices(rows: DeckRow[], prices: PriceInfo[]): number {
   let total = 0
@@ -84,9 +101,9 @@ export function renderPrices(rows: DeckRow[], prices: PriceInfo[]): number {
     const value = unit === null ? null : unit * row.amount
     if (value !== null) total += value
 
-    cell.querySelector('.boris-eur')?.remove()
+    cell.querySelector('.boris-exact')?.remove()
     cell.classList.add('boris-price-cell')
-    const eur = eurElement(value, url, 'boris-eur')
+    const eur = eurElement(value, url, 'boris-eur boris-exact')
     const usd = cell.querySelector('.deck-preview-price-value')
     if (usd) usd.after(eur)
     else cell.append(eur)
@@ -94,18 +111,21 @@ export function renderPrices(rows: DeckRow[], prices: PriceInfo[]): number {
   return total
 }
 
-export function renderCheapest(table: HTMLTableElement, rows: DeckRow[], cards: Array<IScryfallCard | null>): number {
-  table.querySelectorAll<HTMLTableCellElement>('tr.deck-category-header > th').forEach(th => th.colSpan++)
-
+export function renderCheapest(rows: DeckRow[], cards: Array<IScryfallCard | null>): number {
   let total = 0
   rows.forEach((row, i) => {
+    const cell = row.priceCell
+    if (!cell) return
     const unit = eurUnit(cards[i])
     const value = unit === null ? null : unit * row.amount
     if (value !== null) total += value
 
-    const cell = element('td', 'text-end boris-cheapest-cell')
-    cell.append(eurElement(value, cards[i]?.scryfall_uri ?? null, 'boris-cheapest-eur'))
-    row.row.append(cell)
+    cell.querySelector('.boris-cheap')?.remove()
+    cell.classList.add('boris-price-cell')
+    const eur = eurElement(value, cards[i]?.scryfall_uri ?? null, 'boris-eur boris-cheap')
+    const exact = cell.querySelector('.boris-exact')
+    if (exact) exact.after(eur)
+    else cell.append(eur)
   })
   return total
 }
@@ -119,64 +139,66 @@ export function setTotal(scope: HTMLElement, kind: 'price' | 'cheapest', total: 
     anchor.after(container)
   }
 
-  container.querySelector(`.boris-${kind}`)?.remove()
+  container.querySelector(`.boris-total-${kind}`)?.remove()
   const [units, cents] = formatEur(total).split('.')
-  const div = element('div', `deck-price-v2 boris-${kind}`, `€\u00a0${units}`)
+  const div = element('div', `deck-price-v2 boris-total-${kind}`, `€\u00a0${units}`)
   div.append(element('span', 'cents', `.${cents}`))
   if (kind === 'cheapest') container.prepend(div)
   else container.append(div)
 }
 
-export function setCheapestButton(scope: HTMLElement, state: 'loading' | 'done'): void {
-  const button = scope.querySelector<HTMLElement>('.boris-nav [data-boris-action="cheapest"]')
+export function setCheapestLoading(scope: HTMLElement, loading: boolean): void {
+  const button = scope.querySelector<HTMLButtonElement>('.boris-nav [data-boris-action="cheapest"]')
   if (!button) return
-  button.textContent = 'Loading...'
-  button.parentElement!.hidden = state === 'done'
+  button.disabled = loading
+  button.textContent = loading ? 'Loading…' : 'Cheapest'
 }
 
-function pinnedItem(list: IPinnedList): HTMLElement {
-  const item = element('div', 'dropdown-item')
-  const remove = actionLink('X', 'unpin', 'boris-unpin')
-  remove.dataset.url = list.url
+function favoriteItem(deck: IFavoriteDeck): HTMLElement {
+  const item = element('div', 'dropdown-item boris-favorite-item')
+  const remove = actionButton('×', 'unfavorite', 'boris-unfavorite')
+  remove.dataset.url = deck.url
+  remove.setAttribute('aria-label', `Remove ${deck.title} from favorites`)
 
-  const link = element('a', 'boris-pinned-link')
-  link.href = list.url
-  if (list.format) link.append(element('strong', '', list.format), ' | ')
-  link.append(list.title)
+  const link = element('a', 'boris-favorite-link')
+  link.href = deck.url
+  if (deck.format) link.append(element('strong', '', deck.format), ' · ')
+  link.append(deck.title)
 
   item.append(remove, link)
   return item
 }
 
-export function renderPins(scope: HTMLElement, lists: IPinnedList[], currentUrl: string, canPin: boolean): void {
-  const pin = scope.querySelector<HTMLElement>('.boris-nav [data-boris-action="pin"], .boris-nav [data-boris-action="unpin"]')
-  if (pin) {
-    const isPinned = lists.some(list => list.url === currentUrl)
-    pin.parentElement!.hidden = !canPin
-    pin.dataset.borisAction = isPinned ? 'unpin' : 'pin'
-    pin.dataset.url = currentUrl
-    pin.textContent = isPinned ? 'Pinned' : 'Pin'
+export function renderFavorites(scope: HTMLElement, decks: IFavoriteDeck[], currentUrl: string, canFavorite: boolean): void {
+  const favorite = scope.querySelector<HTMLElement>('.boris-nav > [data-boris-action="favorite"], .boris-nav > [data-boris-action="unfavorite"]')
+  if (favorite) {
+    const isFavorite = decks.some(deck => deck.url === currentUrl)
+    favorite.hidden = !canFavorite
+    favorite.dataset.borisAction = isFavorite ? 'unfavorite' : 'favorite'
+    favorite.dataset.url = currentUrl
+    favorite.setAttribute('aria-pressed', String(isFavorite))
+    favorite.textContent = isFavorite ? '★ Favorite' : '☆ Favorite'
   }
 
-  const dropdown = scope.querySelector<HTMLElement>('.boris-nav .boris-pinned')
+  const dropdown = scope.querySelector<HTMLElement>('.boris-nav .boris-favorites')
   if (!dropdown) return
-  dropdown.hidden = !lists.length
+  dropdown.hidden = !decks.length
 
-  const toggle = element('a', 'nav-link dropdown-toggle', 'Pinned Lists')
-  toggle.href = '#'
-  toggle.setAttribute('role', 'button')
+  const toggle = element('button', 'boris-btn dropdown-toggle', 'Favorite Decks')
+  toggle.type = 'button'
   toggle.dataset.bsToggle = 'dropdown'
-  const menu = element('div', 'dropdown-menu')
-  menu.append(...lists.map(pinnedItem))
+  toggle.setAttribute('aria-expanded', 'false')
+  const menu = element('div', 'dropdown-menu dropdown-menu-end')
+  menu.append(...decks.map(favoriteItem))
   dropdown.replaceChildren(toggle, menu)
 }
 
-export function flash(link: HTMLElement, text: string): void {
-  const original = link.dataset.label ?? link.textContent ?? ''
-  link.dataset.label = original
-  link.textContent = text
+export function flash(button: HTMLElement, text: string): void {
+  const original = button.dataset.label ?? button.textContent ?? ''
+  button.dataset.label = original
+  button.textContent = text
   setTimeout(() => {
-    link.textContent = original
-    delete link.dataset.label
+    button.textContent = original
+    delete button.dataset.label
   }, 2000)
 }

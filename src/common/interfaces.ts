@@ -1,4 +1,4 @@
-export interface IPinnedList {
+export interface IFavoriteDeck {
   url: string
   title: string
   format?: string

@@ -90,10 +90,10 @@ Ambiente rilevato: Xcode 27.1, `xcrun safari-web-extension-converter` presente.
 - **Correzione proposta:** rimuovere del tutto la chiave `background` dal manifest (e il file) finché non serve, oppure toglierla solo per la build Safari. In alternativa usare `"scripts": ["src/background.js"]` per Safari. È la correzione più semplice e senza rischi.
 
 ### 6. `chrome.storage.sync` su Safari
-- **Dove:** `src/common/storage.ts:27,34,39` (sync) e `:51,58` (local). Chiavi in sync: `auto`, `images`, `printVersion`, `shoppingWizard`, `pinned_lists`, `reference`.
+- **Dove:** `src/common/storage.ts:27,34,39` (sync) e `:51,58` (local). Chiavi in sync: `auto`, `images`, `printVersion`, `shoppingWizard`, `favorite_decks`, `reference`.
 - **Perché:**
   - **[Ipotesi, documentazione Apple]** In Safari `storage.sync` è disponibile ma **non sincronizza tra dispositivi**: si comporta come `storage.local`. Le quote Chrome (≈100 KB totali, 8 KB per elemento) non si applicano allo stesso modo.
-  - **[V-codice]** `pinned_lists` può crescere (URL di mazzi), ma il rischio di superare quota è lo stesso su Chrome e non cambia con Safari.
+  - **[V-codice]** `favorite_decks` può crescere (URL di mazzi), ma il rischio di superare quota è lo stesso su Chrome e non cambia con Safari.
 - **Impatto:** nessun crash; solo la "sincronizzazione tra dispositivi" non esiste. Le impostazioni sono per-profilo Safari. Il fallback `?? syncDefaults[key]` resta valido.
 - **Correzione proposta:** nessuna obbligatoria. Documentare la limitazione. Se si vuole una sync reale, andrebbe passata da iCloud/CloudKit nell'app contenitore (fuori scopo).
 
@@ -166,7 +166,7 @@ Passi 1-3 sono comandi verificati come disponibili qui (Xcode 27.1); l'esito sul
 
 ### Checklist di test manuale (da fare in Safari)
 - Popup e pagina opzioni si aprono e salvano/ricaricano le impostazioni (`auto`, `images`, ecc.).
-- MTGGoldfish: conversione prezzi, pulsante "Copy" (punto 3), "Save as" (punto 4), pin mazzo.
+- MTGGoldfish: conversione prezzi, pulsante "Copy" (punto 3), "Save as" (punto 4), mazzi preferiti (Favorite).
 - Cardmarket: immagini carta, export Wants `.txt` (punto 4), Shopping Wizard (`urls` in storage).
 - Layout del popup su iPhone (target touch, punto 8).
 

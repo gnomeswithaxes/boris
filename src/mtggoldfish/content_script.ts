@@ -1,37 +1,38 @@
 import { cheapestPrintings } from '../common/cards'
-import { addPinnedList, canonicalDeckUrl, getPinnedLists, removePinnedList } from '../common/pinned'
+import { addFavorite, canonicalDeckUrl, getFavorites, removeFavorite } from '../common/favorites'
 import { getSyncSetting } from '../common/storage'
 import { saveWithFilePicker } from '../common/utilities'
 import { DECK_TABLE, deckFormat, deckListText, deckScope, deckTitle, isPaperTable, parseDeck } from './deck'
 import { resolvePrices } from './prices'
 import {
-  type Action, ensureToolbar, flash, setCheapestButton, renderCheapest, renderPins, renderPrices, setTotal, toggleCurrency,
+  type Action, ensureToolbar, flash, renderCheapest, renderFavorites, renderPrices, setCheapestLoading, setTotal, showCheapest,
+  showUsd, wantsCheapest,
 } from './ui'
 
 const extensionAlive = () => Boolean(chrome.runtime?.id)
 const currentUrl = () => canonicalDeckUrl(location.href)
-const canPin = () => /^\/(deck|archetype)\//.test(location.pathname)
+const canFavorite = () => /^\/(deck|archetype)\//.test(location.pathname)
 
 function paperTable(scope: ParentNode): HTMLTableElement | undefined {
   return [...scope.querySelectorAll<HTMLTableElement>(DECK_TABLE)].find(isPaperTable)
 }
 
-async function refreshPins(): Promise<void> {
-  const lists = await getPinnedLists()
-  document.querySelectorAll('.boris-nav').forEach(nav => renderPins(deckScope(nav), lists, currentUrl(), canPin()))
+async function refreshFavorites(): Promise<void> {
+  const decks = await getFavorites()
+  document.querySelectorAll('.boris-nav').forEach(nav => renderFavorites(deckScope(nav), decks, currentUrl(), canFavorite()))
 }
 
-async function showCheapest(scope: HTMLElement, table: HTMLTableElement): Promise<void> {
-  scope.dataset.borisCheapest = 'true'
+async function loadCheapest(scope: HTMLElement, table: HTMLTableElement): Promise<void> {
+  showCheapest(scope, true)
   if (table.dataset.borisCheapest) return
   table.dataset.borisCheapest = 'true'
-  setCheapestButton(scope, 'loading')
+  setCheapestLoading(scope, true)
 
   const rows = parseDeck(table)
   const cards = await cheapestPrintings(rows.map(row => row.name))
+  setCheapestLoading(scope, false)
   if (!table.isConnected) return
-  setTotal(scope, 'cheapest', renderCheapest(table, rows, cards))
-  setCheapestButton(scope, 'done')
+  setTotal(scope, 'cheapest', renderCheapest(rows, cards))
 }
 
 async function processTable(table: HTMLTableElement): Promise<void> {
@@ -40,13 +41,13 @@ async function processTable(table: HTMLTableElement): Promise<void> {
   if (!rows.length) return
 
   const scope = deckScope(table)
-  if (ensureToolbar(scope, table)) await refreshPins()
+  if (ensureToolbar(scope, table)) await refreshFavorites()
 
   const prices = await resolvePrices(rows)
   if (!table.isConnected) return
   setTotal(scope, 'price', renderPrices(rows, prices))
 
-  if (scope.dataset.borisCheapest || await getSyncSetting('auto')) await showCheapest(scope, table)
+  if (wantsCheapest(scope) || await getSyncSetting('auto')) await loadCheapest(scope, table)
 }
 
 function scan(): void {
@@ -86,12 +87,16 @@ function onClick(event: MouseEvent): void {
 
   const scope = deckScope(link)
   switch (link.dataset.borisAction as Action) {
-    case 'toggle':
-      toggleCurrency(scope)
+    case 'eur':
+    case 'usd':
+      showUsd(scope, link.dataset.borisAction === 'usd')
+      break
+    case 'exact':
+      showCheapest(scope, false)
       break
     case 'cheapest': {
       const table = paperTable(scope)
-      if (table) void showCheapest(scope, table)
+      if (table) void loadCheapest(scope, table)
       break
     }
     case 'copy':
@@ -100,11 +105,11 @@ function onClick(event: MouseEvent): void {
     case 'save':
       saveList(scope, link)
       break
-    case 'pin':
-      void addPinnedList({ url: currentUrl(), title: deckTitle(scope) ?? currentUrl(), format: deckFormat(scope) })
+    case 'favorite':
+      void addFavorite({ url: currentUrl(), title: deckTitle(scope) ?? currentUrl(), format: deckFormat(scope) })
       break
-    case 'unpin':
-      void removePinnedList(link.dataset.url ?? currentUrl())
+    case 'unfavorite':
+      void removeFavorite(link.dataset.url ?? currentUrl())
       break
   }
 }
@@ -123,8 +128,8 @@ const observer = new MutationObserver(() => {
 
 observer.observe(document.documentElement, { childList: true, subtree: true })
 document.addEventListener('click', onClick)
-document.addEventListener('turbo:load', () => void refreshPins())
+document.addEventListener('turbo:load', () => void refreshFavorites())
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && changes.pinned_lists && extensionAlive()) void refreshPins()
+  if (area === 'sync' && changes.favorite_decks && extensionAlive()) void refreshFavorites()
 })
 scan()

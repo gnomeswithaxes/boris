@@ -1,11 +1,11 @@
-import type { IPinnedList, ISavedUrl } from './interfaces'
+import type { IFavoriteDeck, ISavedUrl } from './interfaces'
 
 export interface SyncStorage {
   auto: boolean
   printVersion: boolean
   images: boolean
   shoppingWizard: boolean
-  pinned_lists: IPinnedList[]
+  favorite_decks: IFavoriteDeck[]
   reference: number
 }
 
@@ -18,7 +18,7 @@ const syncDefaults: SyncStorage = {
   printVersion: false,
   images: true,
   shoppingWizard: false,
-  pinned_lists: [],
+  favorite_decks: [],
   reference: 1,
 }
 
