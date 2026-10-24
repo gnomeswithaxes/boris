@@ -36,8 +36,6 @@ export function parsePPU(ppu: string): number {
 export function replaceCamera(span: Element, src: string): void {
   const img = document.createElement('img')
   img.src = src
-  img.style.width = '100%'
-  img.style.height = '100%'
 
   span.classList.remove(...camera_icon_classlist)
   span.classList.add(boris_img_class)

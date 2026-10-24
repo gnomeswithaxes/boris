@@ -21,6 +21,11 @@
     },
     {
       "matches": ["https://*.cardmarket.com/*"],
+      "js": ["src/cardmarket/masonry.ts"],
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://*.cardmarket.com/*"],
       "js": ["src/cardmarket/content_script.ts"],
       "css": ["src/common/boris_tooltip.css", "src/cardmarket/boris_mkm.css"]
     }

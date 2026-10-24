@@ -129,6 +129,11 @@ Ambiente rilevato: Xcode 27.1, `xcrun safari-web-extension-converter` presente.
   - **[Ipotesi]** `.at()` richiede Safari ≥ 15.4; `ClipboardItem` con `clipboard.write` ≥ 13.1. Con un deployment target ragionevole (macOS 13+/iOS 16+) non è un problema.
 - **Correzione proposta:** impostare `IPHONEOS_DEPLOYMENT_TARGET` e il target macOS ≥ questi valori (ora iOS 15.0 in `project.pbxproj`, e macOS `RECOMMENDED_MACOSX_DEPLOYMENT_TARGET`). Opzionale: `build.target: 'safari15'` in `vite.config.ts` per far transpilare la sintassi.
 
+### 11. Content script nel `MAIN` world
+- **Dove:** `manifest.json`, voce `src/cardmarket/masonry.ts` con `"world": "MAIN"` (aggiunta dopo l'audit).
+- **Cosa:** **[Ipotesi]** il supporto di Safari alla chiave `world` nei `content_scripts` del manifest è da verificare; se viene ignorata, lo script gira nel mondo isolato, non vede `window.Masonry` e non fa nulla (nessun errore). L'effetto è solo cosmetico: nei risultati dello Shopping Wizard i riquadri dei venditori tornano a sovrapporsi.
+- **Correzione proposta:** testare la pagina dei risultati dello Shopping Wizard in Safari; se serve, iniettare lo script con `scripting.executeScript({ world: 'MAIN' })` da un background.
+
 ---
 
 ## Verificato senza problemi

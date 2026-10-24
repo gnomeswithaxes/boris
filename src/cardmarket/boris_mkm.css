@@ -5,6 +5,18 @@
     align-items: center;
 }
 
+span.boris-image {
+    display: block;
+    flex-shrink: 0;
+    width: 38px;
+}
+
+span.boris-image > img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
 .col {
     display: flex;
     align-items: center !important;
@@ -57,22 +69,30 @@
     min-width: 0;
 }
 
-.boris-seller {
+.boris-seller,
+.boris-card-links {
     white-space: nowrap;
 }
 
-.boris-seller > a:not(.boris-singles-link) {
+.boris-card-links {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.boris-seller > a:not(.boris-icon-link),
+.boris-card-links > :last-child {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.boris-singles-link {
+.boris-icon-link {
     display: inline-flex;
     flex-shrink: 0;
 }
 
-.boris-singles-divider {
+.boris-divider {
     flex-shrink: 0;
     width: 1px;
     height: 14px;
@@ -81,11 +101,11 @@
     opacity: .35;
 }
 
-.boris-singles-divider:first-child {
+.boris-divider:first-child {
     margin-left: .15em;
 }
 
-.boris-singles-link svg {
+.boris-icon-link svg {
     width: 16px;
     height: 16px;
     fill: none;

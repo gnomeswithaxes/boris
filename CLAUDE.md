@@ -34,6 +34,7 @@ Vite + `vite-plugin-web-extension`. The plugin reads `manifest.json` at the proj
 | `src/options.html` + `src/options.tsx` | `dist/src/options.html` | React options page — same settings, standalone view |
 | `src/mtggoldfish/content_script.ts` | `dist/src/mtggoldfish/content_script.js` | Injected on mtggoldfish.com |
 | `src/cardmarket/content_script.ts` | `dist/src/cardmarket/content_script.js` | Injected on cardmarket.com |
+| `src/cardmarket/masonry.ts` | `dist/src/cardmarket/masonry.js` | Injected on cardmarket.com in the page's `MAIN` world (can see the page's globals, but not `chrome.*`) |
 | `src/mtggoldfish/boris_goldfish.css` | `dist/src/mtggoldfish/boris_goldfish.css` | CSS injected on mtggoldfish.com |
 | `src/cardmarket/boris_mkm.css` | `dist/src/cardmarket/boris_mkm.css` | CSS injected on cardmarket.com |
 | `src/common/boris_tooltip.css` | `dist/src/common/boris_tooltip.css` | Shared tooltip injected on both sites: set `data-boris-tip="text"` on an element (`data-boris-tip-align="start"` to anchor it left) |

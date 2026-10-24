@@ -5,6 +5,7 @@ import { getLocalSetting, setLocalSetting } from '../../common/storage'
 import { get_mkm_id, get_mkm_version } from '../utilities'
 import { title_attribute } from '../page_elements'
 import { mapPool } from '../../common/utilities'
+import { divider, iconLink, printingsIcon } from '../icons'
 import type { IScryfallCard } from '../../common/interfaces'
 
 export function addDisclaimer(): void {
@@ -38,22 +39,35 @@ export async function addLinkToCards(): Promise<void> {
     const url = saved?.url ?? await format_url(card, cardVersion, setTitle)
 
     if (url) {
-      const allPrintings = card.purchase_uris?.cardmarket
-        ? `<br>/ <a href='${card.purchase_uris.cardmarket}' target='_blank'>All printings</a>`
-        : ''
-      cardElem.innerHTML = `<a href='${url}' target='_blank'>${card.name}</a>${allPrintings}`
+      showCardLinks(cardElem, card.name, url, card.purchase_uris?.cardmarket)
       return saved ? null : { name: card.name, mkm_id: cardId, url }
     }
 
     const fallback = await fetch_single(cardElem.textContent?.replace(/\(V\.\d+\)/g, '') ?? '')
     if (fallback?.purchase_uris?.cardmarket) {
-      cardElem.innerHTML = `<a href='${fallback.purchase_uris.cardmarket}' target='_blank'>${fallback.name}<br>(All)</a>`
+      showCardLinks(cardElem, fallback.name, null, fallback.purchase_uris.cardmarket)
     }
     return null
   })
 
   saved_urls.push(...newEntries.filter((e): e is ISavedUrl => e !== null))
   await setLocalSetting('urls', saved_urls)
+}
+
+function showCardLinks(cardElem: Element, name: string, url: string | null, allPrintings: string | undefined): void {
+  const nameElem = document.createElement(url ? 'a' : 'span')
+  if (nameElem instanceof HTMLAnchorElement && url) {
+    nameElem.href = url
+    nameElem.target = '_blank'
+  }
+  nameElem.textContent = name
+  nameElem.title = name
+
+  const wrapper = document.createElement('div')
+  wrapper.className = 'boris-card-links'
+  if (allPrintings) wrapper.append(iconLink(allPrintings, 'All printings', printingsIcon()), divider())
+  wrapper.append(nameElem)
+  cardElem.replaceChildren(wrapper)
 }
 
 async function format_url(card: IScryfallCard, version: string, setTitle: string): Promise<string> {
